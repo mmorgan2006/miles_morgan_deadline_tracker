@@ -39,6 +39,9 @@ class Assignment(qt.QFrame):
         top.addWidget(self.details_button)
         layout.addLayout(top)
         due_date_label = qt.QLabel(f"Due in {days_until_due} days")
+        if days_until_due < 0:
+            due_date_label = qt.QLabel("Overdue")
+            due_date_label.setStyleSheet("color: #FF0000;")
         if days_until_due == 0:
             due_date_label = qt.QLabel("Due Today")
             due_date_label.setStyleSheet("color: #FF0000;")
@@ -102,7 +105,7 @@ class Assignment(qt.QFrame):
 class NewAssignment(qt.QDialog):
     def __init__(self, data, classes, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("New Assignment")
+        self.setWindowTitle("Assignment")
         self.setMinimumWidth(350)
         self.setMinimumHeight(200)
 
