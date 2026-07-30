@@ -1,10 +1,22 @@
+import PySide6.QtCore as Qt
 import PySide6.QtWidgets as qt
-from PySide6.QtCore import QDate
 
 
 class Assignment(qt.QWidget):
-    def __init__(self):
-        pass
+    delete_requested = Qt.Signal(object)
+    def __init__(self, data):
+        super().__init__()
+        self.data = data
+        name = qt.QLabel(data["name"])
+
+        layout = qt.QHBoxLayout(self)
+        layout.addWidget(name)
+        self.delete_button = qt.QPushButton("delete")
+        layout.addWidget(self.delete_button)
+
+        self.delete_button.clicked.connect(self.delete)
+    def delete(self):
+        self.delete_requested.emit(self)
 class NewAssignment(qt.QDialog):
     def __init__(self, classes, parent=None):
         super().__init__(parent)
@@ -17,8 +29,8 @@ class NewAssignment(qt.QDialog):
 
         self.due = qt.QDateEdit()
         self.due.setCalendarPopup(True)
-        self.due.setDate(QDate.currentDate())
-        self.due.setMinimumDate(QDate.currentDate())
+        self.due.setDate(Qt.QDate.currentDate())
+        self.due.setMinimumDate(Qt.QDate.currentDate())
 
         self.class_choice = qt.QComboBox()
         self.class_choice.addItem("None")
@@ -56,5 +68,6 @@ class NewAssignment(qt.QDialog):
         return {
             "name": self.assignment_name.text().strip(),
             "due_date": self.due.date().toString("yyyy-MM-dd"),
-            "notes": self.notes.toPlainText().strip()
+            "class": self.class_choice.currentText(),
+            "notes": self.notes.toPlainText().strip(),
         }, self.class_choice.currentText()

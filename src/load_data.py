@@ -22,3 +22,11 @@ def get_json(path):
     dir = get_data_dir() / path
     with open(dir,"r") as file:
         return json.load(file)
+def load_assignments(class_name):
+    dir = get_data_dir() / f"assignments/classes/{class_name}"
+    assignments = []
+    for f in dir.iterdir():
+        if f.is_file():
+            with open(f,"r") as file:
+                assignments.append(json.load(file))
+    return assignments

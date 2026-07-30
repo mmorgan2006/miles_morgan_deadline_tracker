@@ -24,3 +24,7 @@ def create_dir(path):
         return True #already exists = true
     folder.mkdir(parents=True, exist_ok=True)
     return False
+
+def delete_file(path):
+    dir = get_data_dir() / path
+    os.remove(dir)
