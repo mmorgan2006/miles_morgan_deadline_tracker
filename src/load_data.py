@@ -8,7 +8,7 @@ def get_data_dir():
         base = Path(os.environ["APPDATA"])
     else:  # macOS/Linux
         base = Path.home() / ".local" / "share"
-    data_dir = base / "deadline-tracker"
+    data_dir = base / "mmorgan-deadline-tracker"
     data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir
 
@@ -22,8 +22,8 @@ def get_json(path):
     dir = get_data_dir() / path
     with open(dir,"r") as file:
         return json.load(file)
-def load_assignments(class_name):
-    dir = get_data_dir() / f"assignments/classes/{class_name}"
+def load_assignments(path):
+    dir = get_data_dir() / f"{path}"
     assignments = []
     for f in dir.iterdir():
         if f.is_file():

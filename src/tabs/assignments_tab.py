@@ -2,7 +2,7 @@ import PySide6.QtWidgets as qt
 
 import load_data
 import save_data
-from assingment import Assignment, NewAssignment
+from assignment import Assignment, NewAssignment
 from classes import Class, NewClass
 
 
@@ -23,11 +23,13 @@ class AssignmentsTab(qt.QWidget):
 
         self.assignments = {}
         self.classes = load_data.load_classes()
-        self.AddClassWidget("Unordered")
         for class_name in self.classes:
             self.AddClassWidget(class_name)
-            for assignment in load_data.load_assignments(class_name):
+            for assignment in load_data.load_assignments(f"assignments/classes/{class_name}"):
                 self.AddAssignmentWidget(assignment)
+        self.AddClassWidget("Unordered")
+        for assignment in load_data.load_assignments("assignments"):
+            self.AddAssignmentWidget(assignment)
 
 
         self.NewAssignmentButton.clicked.connect(self.AddAssignment)
@@ -95,6 +97,8 @@ class AssignmentList(qt.QWidget):
         self.content_layout.addStretch()
     def addItem(self, widget):
         if isinstance(widget,Class):
+            if widget.name.text() in self.classes:
+                return
             self.classes[widget.name.text()] = widget
             self.content_layout.insertWidget(self.content_layout.count() - 1, widget)
         elif isinstance(widget,Assignment):

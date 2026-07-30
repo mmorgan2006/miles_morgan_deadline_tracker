@@ -8,10 +8,9 @@ def get_data_dir():
         base = Path(os.environ["APPDATA"])
     else:  # macOS/Linux
         base = Path.home() / ".local" / "share"
-    data_dir = base / "deadline-tracker"
+    data_dir = base / "mmorgan-deadline-tracker"
     data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir
-
 def save_json(path,data):
     dir = get_data_dir()
     with open(dir / path, "w") as file:
@@ -27,4 +26,7 @@ def create_dir(path):
 
 def delete_file(path):
     dir = get_data_dir() / path
-    os.remove(dir)
+    if dir.is_file():
+        os.remove(dir)
+    elif dir.is_dir():
+        os.rmdir(dir)
