@@ -50,7 +50,7 @@ class Class(qt.QFrame):
 class NewClass(qt.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("New Class")
+        self.setWindowTitle("Class")
         self.setMinimumWidth(350)
         self.setMinimumHeight(90)
 

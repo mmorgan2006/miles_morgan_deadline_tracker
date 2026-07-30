@@ -4,6 +4,7 @@ import load_data
 import save_data
 from assignment import Assignment, NewAssignment
 from classes import Class, NewClass
+from due_date_sort import sort
 
 
 class AssignmentsTab(qt.QWidget):
@@ -31,7 +32,7 @@ class AssignmentsTab(qt.QWidget):
         for assignment in load_data.load_assignments("assignments"):
             self.AddAssignmentWidget(assignment)
 
-
+        self.AssignmentsList.sort()
         self.NewAssignmentButton.clicked.connect(self.AddAssignment)
         self.NewClassButton.clicked.connect(self.AddClass)
 
@@ -46,6 +47,7 @@ class AssignmentsTab(qt.QWidget):
                 path = f"assignments/classes/{data["class"]}/{data["name"]}.json"
             save_data.save_json(path,data)
             self.AddAssignmentWidget(data)
+            self.AssignmentsList.sort()
 
     def AddClass(self):
         dialog = NewClass()
@@ -57,11 +59,13 @@ class AssignmentsTab(qt.QWidget):
                 return
             self.classes.append(name)
             self.AddClassWidget(name)
+
     def AddAssignmentWidget(self,data):
         widget = Assignment(data)
         widget.delete_requested.connect(self.RemoveAssignmentWidget)
         widget.edit_requested.connect(self.Edit)
         self.AssignmentsList.addItem(widget)
+
     def RemoveAssignmentWidget(self,widget):
         name,class_name = widget.data["name"],widget.data["class"]
         self.AssignmentsList.removeItem(widget)
@@ -69,6 +73,7 @@ class AssignmentsTab(qt.QWidget):
         if class_name == "None":
             path = f"assignments/{name}.json"
         save_data.delete_file(path)
+
     def Edit(self, widget):
         self.RemoveAssignmentWidget(widget)
         data = widget.dialog.get_data()
@@ -78,11 +83,11 @@ class AssignmentsTab(qt.QWidget):
             path = f"assignments/classes/{data["class"]}/{data["name"]}.json"
         save_data.save_json(path,data)
         self.AddAssignmentWidget(data)
+
     def AddClassWidget(self,name):
         widget = Class(name)
-        #widget.delete_requested.connect(self.RemoveAssignmentWidget)
-        #widget.edit_requested.connect(self.Edit)
         self.AssignmentsList.addItem(widget)
+
 class AssignmentList(qt.QWidget):
     def __init__(self):
         super().__init__()
@@ -99,13 +104,26 @@ class AssignmentList(qt.QWidget):
         if isinstance(widget,Class):
             if widget.name.text() in self.classes:
                 return
-            self.classes[widget.name.text()] = widget
+            self.classes[widget.name.text()] = {"widget": widget,"assignments": []}
             self.content_layout.insertWidget(self.content_layout.count() - 1, widget)
         elif isinstance(widget,Assignment):
             class_name = widget.data["class"]
             if widget.data["class"] == "None":
                 class_name = "Unordered"
-            self.classes[class_name].addAssignment(widget)
+            self.classes[class_name]["widget"].addAssignment(widget)
+            self.classes[class_name]["assignments"].append(widget)
     def removeItem(self, widget):
         self.content_layout.removeWidget(widget)
+        if widget.data["class"] == "None":
+            self.classes["Unordered"]["assignments"].remove(widget)
+        else:
+            self.classes[widget.data["class"]]["assignments"].remove(widget)
         widget.deleteLater()
+    def sort(self):
+        for class_name in self.classes:
+            arr = self.classes[class_name]["assignments"]
+            if len(arr) > 1:
+                class_widget = self.classes[class_name]["widget"]
+                self.classes[class_name]["assignments"] = sort(arr,0,len(arr)-1)
+                for i in range(len(arr)):
+                    class_widget.content_layout.insertWidget(i, self.classes[class_name]["assignments"][i])
