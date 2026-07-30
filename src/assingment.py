@@ -1,9 +1,10 @@
 import PySide6.QtCore as Qt
 import PySide6.QtWidgets as qt
-
+import load_data
 
 class Assignment(qt.QWidget):
     delete_requested = Qt.Signal(object)
+    edit_requested = Qt.Signal(object)
     def __init__(self, data):
         super().__init__()
         self.data = data
@@ -11,14 +12,30 @@ class Assignment(qt.QWidget):
 
         layout = qt.QHBoxLayout(self)
         layout.addWidget(name)
+        self.edit_button = qt.QPushButton("edit")
+        layout.addWidget(self.edit_button)
         self.delete_button = qt.QPushButton("delete")
         layout.addWidget(self.delete_button)
 
         self.delete_button.clicked.connect(self.delete)
+        self.edit_button.clicked.connect(self.edit)
     def delete(self):
-        self.delete_requested.emit(self)
+        reply = qt.QMessageBox.question(
+            self,
+            "Delete Assignment",
+            "Are you sure you want to permanently delete this assignment?",
+            qt.QMessageBox.StandardButton.Yes | qt.QMessageBox.StandardButton.No
+        )
+        if reply == qt.QMessageBox.StandardButton.Yes:
+            self.delete_requested.emit(self)
+    def edit(self):
+        classes = load_data.load_classes()
+        self.dialog = NewAssignment(self.data, classes)
+        if self.dialog.exec() == qt.QDialog.DialogCode.Accepted:
+            self.edit_requested.emit(self)
+
 class NewAssignment(qt.QDialog):
-    def __init__(self, classes, parent=None):
+    def __init__(self, data, classes, parent=None):
         super().__init__(parent)
         self.setWindowTitle("New Assignment")
         self.setMinimumWidth(350)
@@ -39,7 +56,11 @@ class NewAssignment(qt.QDialog):
         self.notes = qt.QTextEdit()
         self.notes.setPlaceholderText("Optional notes...")
         self.notes.setMaximumHeight(100)
-
+        if data is not None:
+            self.assignment_name.setText(data["name"])
+            self.due.setDate(Qt.QDate.fromString(data["due_date"]))
+            self.class_choice.setCurrentText(data["class"])
+            self.notes.setText(data["notes"])
         form = qt.QFormLayout()
         form.addRow("Name: ",self.assignment_name)
         form.addRow("Class: ", self.class_choice)
@@ -65,9 +86,7 @@ class NewAssignment(qt.QDialog):
         self.accept()
 
     def get_data(self):
-        return {
-            "name": self.assignment_name.text().strip(),
-            "due_date": self.due.date().toString("yyyy-MM-dd"),
-            "class": self.class_choice.currentText(),
-            "notes": self.notes.toPlainText().strip(),
-        }, self.class_choice.currentText()
+        return {"name": self.assignment_name.text().strip(),
+                "due_date": self.due.date().toString("yyyy-MM-dd"),
+                "class": self.class_choice.currentText(),
+                "notes": self.notes.toPlainText().strip()}

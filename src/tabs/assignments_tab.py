@@ -31,13 +31,13 @@ class AssignmentsTab(qt.QWidget):
 
 
     def AddAssignment(self):
-        dialog = NewAssignment(self.classes)
+        dialog = NewAssignment(None, self.classes)
         if dialog.exec() == qt.QDialog.DialogCode.Accepted:
-            data,class_name = dialog.get_data()
-            if class_name == "None":
+            data = dialog.get_data()
+            if data["class"] == "None":
                 path = f"assignments/{data["name"]}.json"
             else:
-                path = f"assignments/classes/{class_name}/{data["name"]}.json"
+                path = f"assignments/classes/{data["class"]}/{data["name"]}.json"
             save_data.save_json(path,data)
             self.AddAssignmentWidget(data)
 
@@ -53,18 +53,21 @@ class AssignmentsTab(qt.QWidget):
     def AddAssignmentWidget(self,data):
         widget = Assignment(data)
         widget.delete_requested.connect(self.RemoveAssignmentWidget)
+        widget.edit_requested.connect(self.Edit)
         self.AssignmentsList.addItem(widget)
     def RemoveAssignmentWidget(self,widget):
         name,class_name = widget.data["name"],widget.data["class"]
-        reply = qt.QMessageBox.question(
-            self,
-            "Delete Assignment",
-            "Are you sure you want to permanently delete this assignment?",
-            qt.QMessageBox.StandardButton.Yes | qt.QMessageBox.StandardButton.No
-        )
-        if reply == qt.QMessageBox.StandardButton.Yes:
-            self.AssignmentsList.removeItem(widget)
-            save_data.delete_file(f"assignments/classes/{class_name}/{name}.json")
+        self.AssignmentsList.removeItem(widget)
+        save_data.delete_file(f"assignments/classes/{class_name}/{name}.json")
+    def Edit(self, widget):
+        self.RemoveAssignmentWidget(widget)
+        data = widget.dialog.get_data()
+        if data["class"] == "None":
+            path = f"assignments/{data["name"]}.json"
+        else:
+            path = f"assignments/classes/{data["class"]}/{data["name"]}.json"
+        save_data.save_json(path,data)
+        self.AddAssignmentWidget(data)
 class AssignmentList(qt.QWidget):
     def __init__(self):
         super().__init__()
