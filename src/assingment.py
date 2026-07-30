@@ -1,6 +1,8 @@
 import PySide6.QtCore as Qt
 import PySide6.QtWidgets as qt
+
 import load_data
+
 
 class Assignment(qt.QWidget):
     delete_requested = Qt.Signal(object)

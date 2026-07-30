@@ -1,6 +1,25 @@
 import PySide6.QtWidgets as qt
 
 
+class Class(qt.QWidget):
+    def __init__(self,name):
+        super().__init__()
+        self.full_layout = qt.QVBoxLayout(self)
+
+        self.name = qt.QLabel(name)
+        self.rename = qt.QPushButton("Rename")
+        self.delete = qt.QPushButton("Delete")
+
+        details = qt.QHBoxLayout()
+        details.addWidget(self.name)
+        details.addWidget(self.rename)
+        details.addWidget(self.delete)
+        self.full_layout.addLayout(details)
+    def addAssignment(self,widget):
+        self.full_layout.addWidget(widget)
+    def removeItem(self, widget):
+        self.full_layout.removeWidget(widget)
+        widget.deleteLater()
 class NewClass(qt.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
