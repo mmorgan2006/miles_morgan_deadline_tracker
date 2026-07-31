@@ -1,18 +1,25 @@
+import PySide6.QtCore as Qt
 import PySide6.QtWidgets as qt
 
 import load_data
 import save_data
+import utilities
 from assignment import Assignment, NewAssignment
+from class_list import ClassList
 from classes import Class, NewClass
-from due_date_sort import sort
 
 
 class AssignmentsTab(qt.QWidget):
+    classAddedAssignments = Qt.Signal(str)
+
     def __init__(self):
         super().__init__()
+        self.user = load_data.get_json("user.json")
+        self.classes = self.user["classes_order_assignments"]
+
         self.NewAssignmentButton = qt.QPushButton("+ Assignment")
         self.NewClassButton = qt.QPushButton("+ Class")
-        self.AssignmentsList = AssignmentList()
+        self.AssignmentsList = ClassList()
 
         layout = qt.QVBoxLayout()
         buttons = qt.QHBoxLayout()
@@ -23,11 +30,8 @@ class AssignmentsTab(qt.QWidget):
         self.setLayout(layout)
 
         self.assignments = {}
-        self.classes = load_data.load_classes()
-        for class_name in self.classes:
+        for class_name in self.user["classes_order_assignments"]:
             self.AddClassWidget(class_name)
-            for assignment in load_data.load_assignments(f"assignments/classes/{class_name}"):
-                self.AddAssignmentWidget(assignment)
         self.AddClassWidget("Unordered")
         for assignment in load_data.load_assignments("assignments"):
             self.AddAssignmentWidget(assignment)
@@ -41,10 +45,9 @@ class AssignmentsTab(qt.QWidget):
         dialog = NewAssignment(None, self.classes)
         if dialog.exec() == qt.QDialog.DialogCode.Accepted:
             data = dialog.get_data()
-            if data["class"] == "None":
-                path = f"assignments/{data["name"]}.json"
-            else:
-                path = f"assignments/classes/{data["class"]}/{data["name"]}.json"
+            id = utilities.generate_id("assignments")
+            data["id"] = str(id)
+            path = f"assignments/{id}.json"
             save_data.save_json(path,data)
             self.AddAssignmentWidget(data)
             self.AssignmentsList.sort()
@@ -53,10 +56,12 @@ class AssignmentsTab(qt.QWidget):
         dialog = NewClass()
         if dialog.exec() == qt.QDialog.DialogCode.Accepted:
             name = dialog.class_name.text().strip()
-            path = f"assignments/classes/{name}"
-            if save_data.create_dir(path):
+            if name in self.user["classes_order_assignments"]:
                 qt.QMessageBox.warning(self,"Error","That class already exists.")
                 return
+            self.user["classes_order_assignments"].append(name)
+            self.user["classes_order_notes"].append(name)
+            save_data.save_json("user.json",self.user)
             self.classes.append(name)
             self.AddClassWidget(name)
 
@@ -67,63 +72,27 @@ class AssignmentsTab(qt.QWidget):
         self.AssignmentsList.addItem(widget)
 
     def RemoveAssignmentWidget(self,widget):
-        name,class_name = widget.data["name"],widget.data["class"]
+        name = widget.data["id"]
         self.AssignmentsList.removeItem(widget)
-        path = f"assignments/classes/{class_name}/{name}.json"
-        if class_name == "None":
-            path = f"assignments/{name}.json"
+        path = f"assignments/{name}.json"
         save_data.delete_file(path)
+
+    def RemoveClassWidget(self,widget):
+        self.user["classes_order_assignments"].remove(widget.class_name)
+        self.user["classes_order_notes"].remove(widget.class_name)
+        self.AssignmentsList.removeItem(widget)
+        save_data.save_json("user.json",self.user)
 
     def Edit(self, widget):
         self.RemoveAssignmentWidget(widget)
         data = widget.dialog.get_data()
-        if data["class"] == "None":
-            path = f"assignments/{data["name"]}.json"
-        else:
-            path = f"assignments/classes/{data["class"]}/{data["name"]}.json"
+        data["id"] = widget.data["id"]
+        path = f"assignments/{data["id"]}.json"
         save_data.save_json(path,data)
         self.AddAssignmentWidget(data)
+        self.AssignmentsList.sort()
 
     def AddClassWidget(self,name):
         widget = Class(name)
+        widget.delete_requested.connect(self.RemoveClassWidget)
         self.AssignmentsList.addItem(widget)
-
-class AssignmentList(qt.QWidget):
-    def __init__(self):
-        super().__init__()
-        self.classes = {}
-        scroll = qt.QScrollArea()
-        scroll.setWidgetResizable(True)
-        content = qt.QWidget()
-        self.content_layout = qt.QVBoxLayout(content)
-        scroll.setWidget(content)
-        layout = qt.QVBoxLayout(self)
-        layout.addWidget(scroll)
-        self.content_layout.addStretch()
-    def addItem(self, widget):
-        if isinstance(widget,Class):
-            if widget.name.text() in self.classes:
-                return
-            self.classes[widget.name.text()] = {"widget": widget,"assignments": []}
-            self.content_layout.insertWidget(self.content_layout.count() - 1, widget)
-        elif isinstance(widget,Assignment):
-            class_name = widget.data["class"]
-            if widget.data["class"] == "None":
-                class_name = "Unordered"
-            self.classes[class_name]["widget"].addAssignment(widget)
-            self.classes[class_name]["assignments"].append(widget)
-    def removeItem(self, widget):
-        self.content_layout.removeWidget(widget)
-        if widget.data["class"] == "None":
-            self.classes["Unordered"]["assignments"].remove(widget)
-        else:
-            self.classes[widget.data["class"]]["assignments"].remove(widget)
-        widget.deleteLater()
-    def sort(self):
-        for class_name in self.classes:
-            arr = self.classes[class_name]["assignments"]
-            if len(arr) > 1:
-                class_widget = self.classes[class_name]["widget"]
-                self.classes[class_name]["assignments"] = sort(arr,0,len(arr)-1)
-                for i in range(len(arr)):
-                    class_widget.content_layout.insertWidget(i, self.classes[class_name]["assignments"][i])

@@ -15,6 +15,9 @@ class MainWindow(qt.QMainWindow):
         self.setMinimumHeight(500)
         self.setMinimumWidth(600)
 
+        tabs.currentChanged.connect(self.on_tab_changed)
+    def on_tab_changed(self,index):
+        print(f"Switched to tab index: {index}")
 if __name__ == "__main__":
     app = qt.QApplication()
     window = MainWindow()

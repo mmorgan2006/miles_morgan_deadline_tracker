@@ -1,7 +1,9 @@
+import PySide6.QtCore as Qt
 import PySide6.QtWidgets as qt
 
 
 class Class(qt.QFrame):
+    delete_requested = Qt.Signal(object)
     def __init__(self,name):
         super().__init__()
 
@@ -14,10 +16,10 @@ class Class(qt.QFrame):
         """)
 
         self.full_layout = qt.QVBoxLayout(self)
-
+        self.class_name = name
         self.name = qt.QLabel(name)
         self.rename = qt.QPushButton("Rename")
-        self.delete = qt.QPushButton("Delete")
+        self.delete_button = qt.QPushButton("Delete")
 
         self.list_toggle = qt.QPushButton("▲")
         self.list_toggle.setFixedWidth(30)
@@ -29,7 +31,7 @@ class Class(qt.QFrame):
         details.addWidget(self.name)
         if name != "Unordered":
             details.addWidget(self.rename)
-            details.addWidget(self.delete)
+            details.addWidget(self.delete_button)
         details.addWidget(self.list_toggle)
         self.full_layout.addLayout(details)
         self.container = qt.QWidget()
@@ -38,6 +40,7 @@ class Class(qt.QFrame):
         self.full_layout.addWidget(self.container)
 
         self.list_toggle.clicked.connect(self.toggle_view)
+        self.delete_button.clicked.connect(self.delete)
     def addAssignment(self,widget):
         self.content_layout.addWidget(widget)
     def removeItem(self, widget):
@@ -47,6 +50,15 @@ class Class(qt.QFrame):
             expanded = self.list_toggle.isChecked()
             self.container.setVisible(expanded)
             self.list_toggle.setText("▲" if expanded else "▼")
+    def delete(self):
+        reply = qt.QMessageBox.question(
+            self,
+            "Delete Assignment",
+            "Are you sure you want to permanently delete this class?\nThis will delete ALL assignments and notes inside this class.",
+            qt.QMessageBox.StandardButton.Yes | qt.QMessageBox.StandardButton.No
+        )
+        if reply == qt.QMessageBox.StandardButton.Yes:
+            self.delete_requested.emit(self)
 class NewClass(qt.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)

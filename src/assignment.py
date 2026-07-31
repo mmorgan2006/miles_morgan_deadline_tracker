@@ -24,14 +24,20 @@ class Assignment(qt.QFrame):
         self.data = data
         due_date = Qt.QDate.fromString(self.data["due_date"],"MM-dd-yyyy")
         days_until_due = Qt.QDate.currentDate().daysTo(due_date)
+
         name = qt.QLabel(data["name"])
-        self.edit_button = qt.QPushButton("edit")
+
+        self.edit_button = qt.QPushButton("Edit")
+        self.edit_button.setFixedWidth(50)
+
         self.delete_button = qt.QPushButton("delete")
         self.delete_button.setFixedWidth(80)
+
         self.details_button = qt.QPushButton("▼")
         self.details_button.setFixedWidth(30)
         self.details_button.setCheckable(True)
         self.details_button.setChecked(False)
+
         layout = qt.QVBoxLayout(self)
         top = qt.QHBoxLayout()
         top.addWidget(name)
@@ -93,7 +99,7 @@ class Assignment(qt.QFrame):
         if reply == qt.QMessageBox.StandardButton.Yes:
             self.delete_requested.emit(self)
     def edit(self):
-        classes = load_data.load_classes()
+        classes = load_data.get_json("user.json")["classes_order_assignments"]
         self.dialog = NewAssignment(self.data, classes)
         if self.dialog.exec() == qt.QDialog.DialogCode.Accepted:
             self.edit_requested.emit(self)
