@@ -16,7 +16,8 @@ class AssignmentsTab(qt.QWidget):
     def __init__(self):
         super().__init__()
         self.user = load_data.get_json("user.json")
-        self.classes = self.user["classes_order_assignments"]
+        self.classes = set(self.user["classes_order_assignments"])
+        self.assignments = load_data.get_json("assignments.json")
 
         self.NewAssignmentButton = qt.QPushButton("+ Assignment")
         self.NewClassButton = qt.QPushButton("+ Class")
@@ -30,11 +31,10 @@ class AssignmentsTab(qt.QWidget):
         layout.addWidget(self.AssignmentsList)
         self.setLayout(layout)
 
-        self.assignments = {}
         for class_name in self.classes:
             self.AddClassWidget(class_name, self.user)
         self.AddClassWidget("Unordered", self.user)
-        for assignment in load_data.load_assignments("assignments"):
+        for assignment in dict.values(self.assignments):
             self.AddAssignmentWidget(assignment)
 
         self.AssignmentsList.sort()
@@ -46,10 +46,10 @@ class AssignmentsTab(qt.QWidget):
         dialog = NewAssignment(None, self.classes)
         if dialog.exec() == qt.QDialog.DialogCode.Accepted:
             data = dialog.get_data()
-            id = utilities.generate_id("assignments")
+            id = utilities.generate_id()
             data["id"] = str(id)
-            path = f"assignments/{id}.json"
-            save_data.save_json(path,data)
+            self.assignments[str(id)] = data
+            save_data.save_json("assignments.json",self.assignments)
             self.AddAssignmentWidget(data)
             self.AssignmentsList.sort()
 
@@ -63,9 +63,9 @@ class AssignmentsTab(qt.QWidget):
             self.user["classes_order_assignments"].append(name)
             self.user["classes_order_notes"].append(name)
             save_data.save_json("user.json",self.user)
-            self.classes.append(name)
             self.AddClassWidget(name,self.user)
             self.classAdded.emit(name,self.user)
+            self.classes.add(name)
 
     def AddAssignmentWidget(self,data):
         widget = Assignment(data)
@@ -79,7 +79,11 @@ class AssignmentsTab(qt.QWidget):
         path = f"assignments/{name}.json"
         save_data.delete_file(path)
     def RemoveClass(self, name, user):
-        self.user = user
+        if user != self.user:
+            self.user = user
+            self.classes.remove(name)
+
+
         if name in self.AssignmentsList.classes:
             widget = self.AssignmentsList.classes[name]["widget"]
             self.RemoveClassWidget(widget)
@@ -92,14 +96,17 @@ class AssignmentsTab(qt.QWidget):
     def Edit(self, widget):
         self.RemoveAssignmentWidget(widget)
         data = widget.dialog.get_data()
-        data["id"] = widget.data["id"]
-        path = f"assignments/{data["id"]}.json"
-        save_data.save_json(path,data)
+        id = widget.data["id"]
+        data["id"] = id
+        self.assignments[str(id)] = data
+        save_data.save_json("assignments.json",self.assignments)
         self.AddAssignmentWidget(data)
         self.AssignmentsList.sort()
 
     def AddClassWidget(self,name,user):
-        self.user = user
+        if user != self.user:
+            self.user = user
+            self.classes.add(name)
         widget = Class(name)
         widget.delete_requested.connect(self.RemoveClassWidget)
         self.AssignmentsList.addItem(widget)

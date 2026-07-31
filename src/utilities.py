@@ -1,4 +1,4 @@
-from pathlib import Path
+import json
 
 import PySide6.QtCore as Qt
 
@@ -17,16 +17,11 @@ def convert_date(date):
         case 5: return "Friday"
         case 6: return "Saturday"
         case 7: return "Sunday"
-def generate_id(path):
-    path = load_data.get_data_dir() / path
-    ids = set()
-    for f in path.iterdir():
-        try:
-            if f.is_file():
-                ids.add(int(f.name.replace(".json","")))
-        except Exception:  # noqa: BLE001, S110
-            pass
-    print(ids)
+def generate_id():
+    path = load_data.get_data_dir() / "assignments.json"
+    with open(path, "r") as file:
+        data = json.load(file)
+    ids = {int(id) for id in data}
     if len(ids) > 0:
         return max(ids)+1
     else:

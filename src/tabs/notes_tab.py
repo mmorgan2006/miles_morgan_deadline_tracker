@@ -13,10 +13,11 @@ class NotesTab(qt.QWidget):
     def __init__(self):
         super().__init__()
         self.user = load_data.get_json("user.json")
-        self.classes = self.user["classes_order_notes"]
+        self.classes = set(self.user["classes_order_notes"])
 
-        self.NewAssignmentButton = qt.QPushButton("+ Note Page")
+        self.NewNoteButton = qt.QPushButton("+ Note Page")
         self.NewClassButton = qt.QPushButton("+ Class")
+        self.NewNotebookButton = qt.QPushButton("+ Notebook")
         self.NotesList = ClassList()
 
         for class_name in self.classes:
@@ -26,7 +27,8 @@ class NotesTab(qt.QWidget):
 
         layout = qt.QVBoxLayout()
         buttons = qt.QHBoxLayout()
-        buttons.addWidget(self.NewAssignmentButton)
+        buttons.addWidget(self.NewNoteButton)
+        buttons.addWidget(self.NewNotebookButton)
         buttons.addWidget(self.NewClassButton)
         layout.addLayout(buttons)
         layout.addWidget(self.NotesList)
@@ -44,16 +46,21 @@ class NotesTab(qt.QWidget):
             self.user["classes_order_assignments"].append(name)
             self.user["classes_order_notes"].append(name)
             save_data.save_json("user.json",self.user)
-            self.classes.append(name)
             self.AddClassWidget(name, self.user)
             self.classAdded.emit(name, self.user)
+            self.classes.add(name)
+
     def AddClassWidget(self,name,user):
-        self.user = user
+        if user != self.user:
+            self.user = user
+            self.classes.add(name)
         widget = Class(name)
         widget.delete_requested.connect(self.RemoveClassWidget)
         self.NotesList.addItem(widget)
     def RemoveClass(self, name, user):
-        self.user = user
+        if user != self.user:
+            self.user = user
+            self.classes.remove(name)
         if name in self.NotesList.classes:
             widget = self.NotesList.classes[name]["widget"]
             self.RemoveClassWidget(widget)

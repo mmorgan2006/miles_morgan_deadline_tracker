@@ -44,6 +44,8 @@ class Assignment(qt.QFrame):
         top.addWidget(self.edit_button)
         top.addWidget(self.details_button)
         layout.addLayout(top)
+
+        bottom = qt.QHBoxLayout()
         due_date_label = qt.QLabel(f"Due in {days_until_due} days")
         if days_until_due < 0:
             due_date_label = qt.QLabel("Overdue")
@@ -55,8 +57,11 @@ class Assignment(qt.QFrame):
             due_date_label = qt.QLabel("Due Tomorrow")
             due_date_label.setStyleSheet("color: #FF0000;")
         if 7 > days_until_due >= 2: due_date_label.setStyleSheet("color: #FF9600;")
-        layout.addWidget(due_date_label)
+        bottom.addWidget(due_date_label)
+        bottom.addWidget(self.delete_button)
+        layout.addLayout(bottom)
 
+        self.delete_button.setVisible(False)
         self.details = qt.QWidget()
         self.details.setVisible(False)
 
@@ -72,8 +77,6 @@ class Assignment(qt.QFrame):
         details_top = qt.QHBoxLayout()
         details_top.addWidget(due_date_label)
         details_top.addStretch()
-        details_top.addWidget(self.delete_button)
-
         details_layout = qt.QVBoxLayout(self.details)
         details_layout.addLayout(details_top)
         if self.data["details"] != "":
@@ -106,6 +109,8 @@ class Assignment(qt.QFrame):
     def toggle_details(self):
             expanded = self.details_button.isChecked()
             self.details.setVisible(expanded)
+            self.delete_button.setVisible(expanded)
+
             self.details_button.setText("▲" if expanded else "▼")
 
 class NewAssignment(qt.QDialog):

@@ -1,5 +1,6 @@
 import PySide6.QtWidgets as qt
 
+import load_data
 from tabs.assignments_tab import AssignmentsTab
 from tabs.notes_tab import NotesTab
 
@@ -22,6 +23,7 @@ class MainWindow(qt.QMainWindow):
         notes_tab.classRemoved.connect(assignments_tab.RemoveClass)
 
 if __name__ == "__main__":
+    load_data.initialize()
     app = qt.QApplication()
     window = MainWindow()
     window.show()
