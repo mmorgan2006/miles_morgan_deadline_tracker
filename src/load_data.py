@@ -38,9 +38,13 @@ def initialize():
     dir = get_data_dir()
     path = dir / "user.json"
     if not path.exists():
-        user = {"classes_order_assignments": [],"classes_order_notes":[]}
+        user = {"classes_order_assignments": [],"classes_order_notes":[],"notebooks": []}
         save_data.save_json(path,user)
     path = dir / "assignments.json"
+    if not path.exists():
+        data = {}
+        save_data.save_json(path, data)
+    path = dir / "notes.json"
     if not path.exists():
         data = {}
         save_data.save_json(path, data)

@@ -17,8 +17,8 @@ def convert_date(date):
         case 5: return "Friday"
         case 6: return "Saturday"
         case 7: return "Sunday"
-def generate_id():
-    path = load_data.get_data_dir() / "assignments.json"
+def generate_id(path):
+    path = load_data.get_data_dir() / path
     with open(path, "r") as file:
         data = json.load(file)
     ids = {int(id) for id in data}

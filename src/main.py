@@ -16,10 +16,11 @@ class MainWindow(qt.QMainWindow):
         self.setCentralWidget(tabs)
         self.setWindowTitle("Unnamed Deadline Tracker")
         self.setMinimumHeight(500)
-        self.setMinimumWidth(600)
-        assignments_tab.classAdded.connect(notes_tab.AddClassWidget)
+        self.setMinimumWidth(400)
+        self.resize(600,700)
+        assignments_tab.classAdded.connect(notes_tab.AcceptClass)
         assignments_tab.classRemoved.connect(notes_tab.RemoveClass)
-        notes_tab.classAdded.connect(assignments_tab.AddClassWidget)
+        notes_tab.classAdded.connect(assignments_tab.AcceptClass)
         notes_tab.classRemoved.connect(assignments_tab.RemoveClass)
 
 if __name__ == "__main__":
