@@ -1,3 +1,4 @@
+import PySide6.QtCore as Qt
 import PySide6.QtGui as qtg
 import PySide6.QtWidgets as qt
 
@@ -7,6 +8,11 @@ class NotePage(qt.QDialog):
         super().__init__()
         self.setWindowTitle("Note Page")
         self.resize(800,600)
+        self.setWindowFlags(
+                self.windowFlags()
+                | Qt.Qt.WindowMaximizeButtonHint #type: ignore
+                | Qt.Qt.WindowMinimizeButtonHint #type: ignore
+            )
 
         self.textbox = qt.QTextEdit()
 

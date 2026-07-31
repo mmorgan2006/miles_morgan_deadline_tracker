@@ -3,6 +3,7 @@ import PySide6.QtWidgets as qt
 from assignment import Assignment
 from classes import Class
 from due_date_sort import sort
+from notebook import NoteBook
 
 
 class ClassList(qt.QWidget):
@@ -21,33 +22,33 @@ class ClassList(qt.QWidget):
         if isinstance(widget,Class):
             if widget.name.text() in self.classes:
                 return
-            self.classes[widget.name.text()] = {"widget": widget,"assignments": []}
+            self.classes[widget.name.text()] = {"widget": widget,"contents": []}
             self.content_layout.insertWidget(self.content_layout.count() - 1, widget)
             if widget.name != "Unordered" and "Unordered" in self.classes:
                     self.content_layout.insertWidget(self.content_layout.count() - 2, self.classes["Unordered"]["widget"])
 
 
-        elif isinstance(widget,Assignment):
+        elif isinstance(widget, (Assignment, NoteBook)):
             class_name = widget.data["class"]
             if widget.data["class"] == "None":
                 class_name = "Unordered"
-            self.classes[class_name]["widget"].addAssignment(widget)
-            self.classes[class_name]["assignments"].append(widget)
+            self.classes[class_name]["widget"].addItem(widget)
+            self.classes[class_name]["contents"].append(widget)
     def removeItem(self, widget):
         self.content_layout.removeWidget(widget)
         if isinstance(widget,Assignment):
             if widget.data["class"] == "None":
-                self.classes["Unordered"]["assignments"].remove(widget)
+                self.classes["Unordered"]["contents"].remove(widget)
             else:
-                self.classes[widget.data["class"]]["assignments"].remove(widget)
+                self.classes[widget.data["class"]]["contents"].remove(widget)
         else:
             if widget.class_name in self.classes: del self.classes[widget.class_name]
         widget.deleteLater()
     def sort(self):
         for class_name in self.classes:
-            arr = self.classes[class_name]["assignments"]
+            arr = self.classes[class_name]["contents"]
             if len(arr) > 1:
                 class_widget = self.classes[class_name]["widget"]
-                self.classes[class_name]["assignments"] = sort(arr,0,len(arr)-1)
+                self.classes[class_name]["contents"] = sort(arr,0,len(arr)-1)
                 for i in range(len(arr)):
-                    class_widget.content_layout.insertWidget(i, self.classes[class_name]["assignments"][i])
+                    class_widget.content_layout.insertWidget(i, self.classes[class_name]["contents"][i])

@@ -10,8 +10,8 @@ from classes import Class, NewClass
 
 
 class AssignmentsTab(qt.QWidget):
-    classAdded = Qt.Signal(str,dict)
-    classRemoved = Qt.Signal(str, dict)
+    classAdded = Qt.Signal(str)
+    classRemoved = Qt.Signal(str)
 
     def __init__(self):
         super().__init__()
@@ -35,7 +35,11 @@ class AssignmentsTab(qt.QWidget):
         for class_name in self.classes:
             self.AddClassWidget(class_name)
         self.AddClassWidget("Unordered")
-        for assignment in self.assignments.values():
+        assignments = self.assignments.copy()
+        for id,assignment in assignments.items():
+            if assignment["class"] not in self.classes and assignment["class"] != "None":
+                del self.assignments[id]
+                continue
             self.AddAssignmentWidget(assignment)
         self.setUpdatesEnabled(True)
         self.AssignmentsList.sort()
@@ -62,11 +66,12 @@ class AssignmentsTab(qt.QWidget):
             if name in self.user["classes_order_assignments"]:
                 qt.QMessageBox.warning(self,"Error","That class already exists.")
                 return
+            self.user = load_data.get_json("user.json")
             self.user["classes_order_assignments"].append(name)
             self.user["classes_order_notes"].append(name)
             save_data.save_json("user.json",self.user)
             self.AddClassWidget(name)
-            self.classAdded.emit(name,self.user)
+            self.classAdded.emit(name)
             self.classes.append(name)
 
     def AddAssignmentWidget(self,data):
@@ -80,21 +85,18 @@ class AssignmentsTab(qt.QWidget):
         self.AssignmentsList.removeItem(widget)
         self.assignments.pop(name)
         save_data.save_json("assignments.json",self.assignments)
-    def RemoveClass(self, name, user):
-        if user != self.user:
-            self.user = user
-            self.classes.remove(name)
-
-
+    def RemoveClass(self, name):
+        self.classes.remove(name)
         if name in self.AssignmentsList.classes:
             widget = self.AssignmentsList.classes[name]["widget"]
             self.RemoveClassWidget(widget)
     def RemoveClassWidget(self,widget):
+        self.user = load_data.get_json("user.json")
         if widget.class_name in self.user["classes_order_assignments"]: self.user["classes_order_assignments"].remove(widget.class_name)
         if widget.class_name in self.user["classes_order_notes"]: self.user["classes_order_notes"].remove(widget.class_name)
         self.AssignmentsList.removeItem(widget)
         save_data.save_json("user.json",self.user)
-        self.classRemoved.emit(widget.class_name,self.user)
+        self.classRemoved.emit(widget.class_name)
     def Edit(self, widget):
         self.RemoveAssignmentWidget(widget)
         data = widget.dialog.get_data()
@@ -109,8 +111,6 @@ class AssignmentsTab(qt.QWidget):
         widget = Class(name)
         widget.delete_requested.connect(self.RemoveClassWidget)
         self.AssignmentsList.addItem(widget)
-    def AcceptClass(self,name,user):
-        if user != self.user:
-            self.user = user
-            self.classes.append(name)
+    def AcceptClass(self,name):
+        self.classes.append(name)
         self.AddClassWidget(name)

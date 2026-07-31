@@ -1,35 +1,37 @@
 import PySide6.QtCore as Qt
 import PySide6.QtWidgets as qt
 
+import load_data
 
-class Class(qt.QFrame):
+
+class NoteBook(qt.QFrame):
     delete_requested = Qt.Signal(object)
-    def __init__(self,name):
+    def __init__(self,data):
         super().__init__()
-
-        self.setObjectName("ClassContainer")
+        name = data["name"]
+        self.setObjectName("NoteContainer")
         self.setStyleSheet("""
             #ClassContainer {
-                border: 1px solid #333333;
+                border: 1px solid #3f3f3f;
                 border-radius: 10px;
             }
         """)
-
+        self.data = data
         self.full_layout = qt.QVBoxLayout(self)
-        self.class_name = name
+        self.class_name = data["class"]
         self.name = qt.QLabel(name)
-        self.rename = qt.QPushButton("Rename")
+        self.rename = qt.QPushButton("Edit")
         self.delete_button = qt.QPushButton("Delete")
 
-        self.list_toggle = qt.QPushButton("▲")
+        self.list_toggle = qt.QPushButton("▼")
         self.list_toggle.setFixedWidth(30)
         self.list_toggle.setCheckable(True)
-        self.list_toggle.setChecked(True)
+        self.list_toggle.setChecked(False)
 
 
         details = qt.QHBoxLayout()
         details.addWidget(self.name)
-        details.addWidget(qt.QLabel("(Class)"))
+        details.addWidget(qt.QLabel("(Notebook)"))
         details.addStretch()
         if name != "Unordered":
             details.addWidget(self.rename)
@@ -38,12 +40,12 @@ class Class(qt.QFrame):
         self.full_layout.addLayout(details)
         self.container = qt.QWidget()
         self.content_layout = qt.QVBoxLayout(self.container)
-        self.container.setVisible(True)
+        self.container.setVisible(False)
         self.full_layout.addWidget(self.container)
 
         self.list_toggle.clicked.connect(self.toggle_view)
         self.delete_button.clicked.connect(self.delete)
-    def addItem(self,widget):
+    def addAssignment(self,widget):
         self.content_layout.addWidget(widget)
     def removeItem(self, widget):
         self.content_layout.removeWidget(widget)
@@ -55,24 +57,30 @@ class Class(qt.QFrame):
     def delete(self):
         reply = qt.QMessageBox.question(
             self,
-            "Delete Assignment",
-            "Are you sure you want to permanently delete this class?\nThis will delete ALL assignments and notes inside this class.",
+            "Delete Notebook",
+            "Are you sure you want to permanently delete this notebook?\nThis will delete ALL notes inside this notebook.",
             qt.QMessageBox.StandardButton.Yes | qt.QMessageBox.StandardButton.No
         )
         if reply == qt.QMessageBox.StandardButton.Yes:
             self.delete_requested.emit(self)
-class NewClass(qt.QDialog):
+class NewNoteBook(qt.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Class")
+        classes = load_data.get_json("user.json")["classes_order_notes"]
+        self.setWindowTitle("Notebook")
         self.setMinimumWidth(350)
         self.setMinimumHeight(90)
 
-        self.class_name = qt.QLineEdit()
-        self.class_name.setPlaceholderText("e.g. CS 120")
+        self.name = qt.QLineEdit()
+        self.name.setPlaceholderText("e.g. CS 120")
+
+        self.class_choice = qt.QComboBox()
+        self.class_choice.addItem("None")
+        self.class_choice.addItems(classes)
 
         form = qt.QFormLayout()
-        form.addRow("Class: ",self.class_name)
+        form.addRow("Name: ",self.name)
+        form.addRow("Class: ",self.class_choice)
 
         buttons = qt.QDialogButtonBox(
             qt.QDialogButtonBox.StandardButton.Ok
@@ -87,7 +95,7 @@ class NewClass(qt.QDialog):
         buttons.accepted.connect(self.validate)
         buttons.rejected.connect(self.reject)
     def validate(self):
-        if not self.class_name.text().strip() or self.class_name.text().strip() == "Unordered":
-            self.class_name.setStyleSheet("border: 1px solid red;")
+        if not self.name.text().strip() or self.name.text().strip() == "Unordered":
+            self.name.setStyleSheet("border: 1px solid red;")
             return
         self.accept()

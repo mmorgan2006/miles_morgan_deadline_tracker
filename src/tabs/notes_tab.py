@@ -1,22 +1,23 @@
-import threading
-
 import PySide6.QtCore as Qt
 import PySide6.QtWidgets as qt
 
 import load_data
 import save_data
+import utilities
 from class_list import ClassList
 from classes import Class, NewClass
+from notebook import NewNoteBook, NoteBook
 from notepage import NotePage
 
 
 class NotesTab(qt.QWidget):
-    classAdded = Qt.Signal(str, dict)
-    classRemoved = Qt.Signal(str, dict)
+    classAdded = Qt.Signal(str)
+    classRemoved = Qt.Signal(str)
     def __init__(self):
         super().__init__()
         self.user = load_data.get_json("user.json")
         self.classes = list(self.user["classes_order_notes"])
+        self.notebooks = load_data.get_json("notebooks.json")
 
         self.NewNoteButton = qt.QPushButton("+ Note Page")
         self.NewClassButton = qt.QPushButton("+ Class")
@@ -26,7 +27,12 @@ class NotesTab(qt.QWidget):
         for class_name in self.classes:
             self.AddClassWidget(class_name)
         self.AddClassWidget("Unordered")
-
+        notebooks = self.notebooks.copy()
+        for notebook,data in notebooks.items():
+            if data["class"] not in self.classes and data["class"] != "None":
+                del self.notebooks[notebook]
+            self.AddNotebookWidget(data)
+        save_data.save_json("notebooks.json",self.notebooks)
 
         layout = qt.QVBoxLayout()
         buttons = qt.QHBoxLayout()
@@ -41,10 +47,12 @@ class NotesTab(qt.QWidget):
 
         self.NewClassButton.clicked.connect(self.AddClass)
         self.NewNoteButton.clicked.connect(self.AddNote)
+        self.NewNotebookButton.clicked.connect(self.AddNoteBook)
     def AddClass(self):
         dialog = NewClass()
         if dialog.exec() == qt.QDialog.DialogCode.Accepted:
             name = dialog.class_name.text().strip()
+            self.user = load_data.get_json("user.json")
             if name in self.user["classes_order_assignments"]:
                 qt.QMessageBox.warning(self,"Error","That class already exists.")
                 return
@@ -52,32 +60,29 @@ class NotesTab(qt.QWidget):
             self.user["classes_order_notes"].append(name)
             save_data.save_json("user.json",self.user)
             self.AddClassWidget(name)
-            self.classAdded.emit(name, self.user)
+            self.classAdded.emit(name)
             self.classes.append(name)
 
     def AddClassWidget(self,name):
         widget = Class(name)
         widget.delete_requested.connect(self.RemoveClassWidget)
         self.NotesList.addItem(widget)
-    def AcceptClass(self,name,user):
-        if user != self.user:
-            self.user = user
-            self.classes.append(name)
+    def AcceptClass(self,name):
+        self.classes.append(name)
         self.AddClassWidget(name)
-    def RemoveClass(self, name, user):
-        if user != self.user:
-            self.user = user
-            self.classes.remove(name)
+    def RemoveClass(self, name):
+        self.classes.remove(name)
         if name in self.NotesList.classes:
             widget = self.NotesList.classes[name]["widget"]
             self.RemoveClassWidget(widget)
             self.NotesList.removeItem(widget)
     def RemoveClassWidget(self,widget):
+        self.user = load_data.get_json("user.json")
         if widget.class_name in self.user["classes_order_assignments"]: self.user["classes_order_assignments"].remove(widget.class_name)
         if widget.class_name in self.user["classes_order_notes"]: self.user["classes_order_notes"].remove(widget.class_name)
         self.NotesList.removeItem(widget)
         save_data.save_json("user.json",self.user)
-        self.classRemoved.emit(widget.class_name, self.user)
+        self.classRemoved.emit(widget.class_name)
     def AddNote(self):
         note = load_data.get_json("notes.json")
         if len(note) > 0:
@@ -87,6 +92,29 @@ class NotesTab(qt.QWidget):
         dialog.setModal(False)
         dialog.exec()
         data = {"id": "0",
+            "name": "note",
             "class": "none",
+            "notebook": "none",
             "text": dialog.textbox.toHtml()}
         save_data.save_json("notes.json",data)
+    def AddNoteBook(self):
+        dialog = NewNoteBook()
+        if dialog.exec() == qt.QDialog.DialogCode.Accepted:
+            name = dialog.name.text().strip()
+            self.notebooks = load_data.get_json("notebooks.json")
+            id = utilities.generate_id("notebooks.json")
+            data = {
+                "name": name,
+                "class": dialog.class_choice.currentText(),
+                "index": len(self.notebooks),
+                "id": id
+            }
+
+            self.notebooks[id] = data
+            self.AddNotebookWidget(data)
+            save_data.save_json("notebooks.json",self.notebooks)
+    def AddNotebookWidget(self,data):
+        notebook = NoteBook(data)
+        #widget.delete_requested.connect(self.RemoveNotebook)
+        #widget.edit_requested.connect(self.EditNotebook)
+        self.NotesList.addItem(notebook)
