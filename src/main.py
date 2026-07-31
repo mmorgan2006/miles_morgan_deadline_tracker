@@ -8,16 +8,19 @@ class MainWindow(qt.QMainWindow):
     def __init__(self):
         super().__init__()
         tabs = qt.QTabWidget()
-        tabs.addTab(AssignmentsTab(),"Assignments")
-        tabs.addTab(NotesTab(),"Notes")
+        assignments_tab = AssignmentsTab()
+        notes_tab = NotesTab()
+        tabs.addTab(assignments_tab,"Assignments")
+        tabs.addTab(notes_tab,"Notes")
         self.setCentralWidget(tabs)
         self.setWindowTitle("Unnamed Deadline Tracker")
         self.setMinimumHeight(500)
         self.setMinimumWidth(600)
+        assignments_tab.classAdded.connect(notes_tab.AddClassWidget)
+        assignments_tab.classRemoved.connect(notes_tab.RemoveClass)
+        notes_tab.classAdded.connect(assignments_tab.AddClassWidget)
+        notes_tab.classRemoved.connect(assignments_tab.RemoveClass)
 
-        tabs.currentChanged.connect(self.on_tab_changed)
-    def on_tab_changed(self,index):
-        print(f"Switched to tab index: {index}")
 if __name__ == "__main__":
     app = qt.QApplication()
     window = MainWindow()

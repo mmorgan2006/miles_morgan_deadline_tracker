@@ -23,8 +23,8 @@ class ClassList(qt.QWidget):
                 return
             self.classes[widget.name.text()] = {"widget": widget,"assignments": []}
             self.content_layout.insertWidget(self.content_layout.count() - 1, widget)
-            if "Unordered" in self.classes:
-                self.content_layout.insertWidget(self.content_layout.count() - 1, self.classes["Unordered"]["widget"])
+            if widget.name != "Unordered" and "Unordered" in self.classes:
+                    self.content_layout.insertWidget(self.content_layout.count() - 2, self.classes["Unordered"]["widget"])
 
 
         elif isinstance(widget,Assignment):
@@ -41,7 +41,7 @@ class ClassList(qt.QWidget):
             else:
                 self.classes[widget.data["class"]]["assignments"].remove(widget)
         else:
-            self.classes.pop(widget.class_name)
+            if widget.class_name in self.classes: del self.classes[widget.class_name]
         widget.deleteLater()
     def sort(self):
         for class_name in self.classes:

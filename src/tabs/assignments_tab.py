@@ -10,7 +10,8 @@ from classes import Class, NewClass
 
 
 class AssignmentsTab(qt.QWidget):
-    classAddedAssignments = Qt.Signal(str)
+    classAdded = Qt.Signal(str,dict)
+    classRemoved = Qt.Signal(str, dict)
 
     def __init__(self):
         super().__init__()
@@ -30,9 +31,9 @@ class AssignmentsTab(qt.QWidget):
         self.setLayout(layout)
 
         self.assignments = {}
-        for class_name in self.user["classes_order_assignments"]:
-            self.AddClassWidget(class_name)
-        self.AddClassWidget("Unordered")
+        for class_name in self.classes:
+            self.AddClassWidget(class_name, self.user)
+        self.AddClassWidget("Unordered", self.user)
         for assignment in load_data.load_assignments("assignments"):
             self.AddAssignmentWidget(assignment)
 
@@ -63,7 +64,8 @@ class AssignmentsTab(qt.QWidget):
             self.user["classes_order_notes"].append(name)
             save_data.save_json("user.json",self.user)
             self.classes.append(name)
-            self.AddClassWidget(name)
+            self.AddClassWidget(name,self.user)
+            self.classAdded.emit(name,self.user)
 
     def AddAssignmentWidget(self,data):
         widget = Assignment(data)
@@ -76,13 +78,17 @@ class AssignmentsTab(qt.QWidget):
         self.AssignmentsList.removeItem(widget)
         path = f"assignments/{name}.json"
         save_data.delete_file(path)
-
+    def RemoveClass(self, name, user):
+        self.user = user
+        if name in self.AssignmentsList.classes:
+            widget = self.AssignmentsList.classes[name]["widget"]
+            self.RemoveClassWidget(widget)
     def RemoveClassWidget(self,widget):
-        self.user["classes_order_assignments"].remove(widget.class_name)
-        self.user["classes_order_notes"].remove(widget.class_name)
+        if widget.class_name in self.user["classes_order_assignments"]: self.user["classes_order_assignments"].remove(widget.class_name)
+        if widget.class_name in self.user["classes_order_notes"]: self.user["classes_order_notes"].remove(widget.class_name)
         self.AssignmentsList.removeItem(widget)
         save_data.save_json("user.json",self.user)
-
+        self.classRemoved.emit(widget.class_name,self.user)
     def Edit(self, widget):
         self.RemoveAssignmentWidget(widget)
         data = widget.dialog.get_data()
@@ -92,7 +98,8 @@ class AssignmentsTab(qt.QWidget):
         self.AddAssignmentWidget(data)
         self.AssignmentsList.sort()
 
-    def AddClassWidget(self,name):
+    def AddClassWidget(self,name,user):
+        self.user = user
         widget = Class(name)
         widget.delete_requested.connect(self.RemoveClassWidget)
         self.AssignmentsList.addItem(widget)
