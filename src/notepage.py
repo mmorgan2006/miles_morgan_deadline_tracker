@@ -2,6 +2,8 @@ import PySide6.QtCore as Qt
 import PySide6.QtGui as qtg
 import PySide6.QtWidgets as qt
 
+import load_data
+
 
 class NotePage(qt.QDialog):
     def __init__(self, data):
@@ -62,3 +64,70 @@ class NotePage(qt.QDialog):
         self.bold_button.setChecked(format.fontWeight() == qtg.QFont.Bold) #type: ignore
         self.italic_button.setChecked(format.fontItalic())
         self.underline_button.setChecked(format.fontUnderline())
+
+class NoteSettings(qt.QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        classes = load_data.get_json("user.json")["classes_order_notes"]
+        self.notebooks = load_data.get_json("notebooks.json").values()
+
+        self.setWindowTitle("Note Page")
+        self.setMinimumWidth(350)
+        self.setMinimumHeight(180)
+
+        self.name = qt.QLineEdit()
+        self.name.setPlaceholderText("e.g. Week 1 Notes")
+
+        self.class_choice = qt.QComboBox()
+        self.class_choice.addItem("None")
+        self.class_choice.addItems(classes)
+
+        self.notebook_choice = qt.QComboBox()
+        self.notebook_choice.addItem("None")
+
+        form = qt.QFormLayout()
+        form.addRow("Name: ",self.name)
+        form.addRow("Class: ",self.class_choice)
+
+        self.container = qt.QWidget()
+        self.container.setVisible(False)
+        form2 = qt.QFormLayout(self.container)
+        form2.addRow("Notebook: ",self.notebook_choice)
+        form.addRow(self.container)
+        buttons = qt.QDialogButtonBox(
+            qt.QDialogButtonBox.StandardButton.Ok
+            | qt.QDialogButtonBox.StandardButton.Cancel
+        )
+
+        layout = qt.QVBoxLayout(self)
+        layout.addLayout(form)
+        layout.addWidget(buttons)
+        layout.addStretch()
+
+        buttons.accepted.connect(self.validate)
+        buttons.rejected.connect(self.reject)
+        self.toggle_notebooks()
+        self.class_choice.currentTextChanged.connect(self.toggle_notebooks)
+    def validate(self):
+        if not self.name.text().strip():
+            self.name.setStyleSheet("border: 1px solid red;")
+            return
+        self.accept()
+        print(self.get_data())
+    def toggle_notebooks(self):
+        notebooks = [f["name"] for f in self.notebooks if f["class"] == self.class_choice.currentText()]
+        self.notebook_ids = [f["id"] for f in self.notebooks if f["class"] == self.class_choice.currentText()]
+        self.container.setVisible(len(notebooks) > 0)
+        self.notebook_choice.clear()
+        self.notebook_choice.addItem("None")
+        self.notebook_choice.addItems(notebooks)
+        print(notebooks)
+    def get_data(self):
+        id = str(self.notebook_ids[self.notebook_choice.currentIndex() - 1])
+        if self.notebook_choice.currentIndex() - 1 == -1:
+            id = "-1"
+        return {
+            "name": self.name.text().strip(),
+            "class": self.class_choice.currentText(),
+            "notebook_id": id
+        }

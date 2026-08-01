@@ -7,7 +7,7 @@ import utilities
 from class_list import ClassList
 from classes import Class, NewClass
 from notebook import NewNoteBook, NoteBook
-from notepage import NotePage
+from notepage import NotePage, NoteSettings
 
 
 class NotesTab(qt.QWidget):
@@ -84,19 +84,24 @@ class NotesTab(qt.QWidget):
         save_data.save_json("user.json",self.user)
         self.classRemoved.emit(widget.class_name)
     def AddNote(self):
-        note = load_data.get_json("notes.json")
-        if len(note) > 0:
-            dialog = NotePage(note)
-        else:
-            dialog = NotePage(None)
-        dialog.setModal(False)
-        dialog.exec()
-        data = {"id": "0",
-            "name": "note",
-            "class": "none",
-            "notebook": "none",
-            "text": dialog.textbox.toHtml()}
-        save_data.save_json("notes.json",data)
+        dialog = NoteSettings()
+        if dialog.exec() == qt.QDialog.DialogCode.Accepted:
+            notes = load_data.get_json("notes.json")
+            data = dialog.get_data()
+            id = str(utilities.generate_id("notes.json"))
+            data["id"] = id
+            data["text"] = ""
+            notes[id] = data
+            save_data.save_json("notes.json", notes)
+
+
+            dialog = NotePage(data)
+
+            dialog.setModal(False)
+            dialog.exec()
+            data["text"] = dialog.textbox.toHtml()
+            notes[id] = data
+            save_data.save_json("notes.json",notes)
     def AddNoteBook(self):
         dialog = NewNoteBook()
         if dialog.exec() == qt.QDialog.DialogCode.Accepted:
