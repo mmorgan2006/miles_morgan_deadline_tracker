@@ -113,7 +113,6 @@ class NoteSettings(qt.QDialog):
             self.name.setStyleSheet("border: 1px solid red;")
             return
         self.accept()
-        print(self.get_data())
     def toggle_notebooks(self):
         notebooks = [f["name"] for f in self.notebooks if f["class"] == self.class_choice.currentText()]
         self.notebook_ids = [f["id"] for f in self.notebooks if f["class"] == self.class_choice.currentText()]
@@ -121,7 +120,6 @@ class NoteSettings(qt.QDialog):
         self.notebook_choice.clear()
         self.notebook_choice.addItem("None")
         self.notebook_choice.addItems(notebooks)
-        print(notebooks)
     def get_data(self):
         id = str(self.notebook_ids[self.notebook_choice.currentIndex() - 1])
         if self.notebook_choice.currentIndex() - 1 == -1:

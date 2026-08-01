@@ -45,7 +45,7 @@ class NoteBook(qt.QFrame):
 
         self.list_toggle.clicked.connect(self.toggle_view)
         self.delete_button.clicked.connect(self.delete)
-    def addAssignment(self,widget):
+    def addItem(self,widget):
         self.content_layout.addWidget(widget)
     def removeItem(self, widget):
         self.content_layout.removeWidget(widget)

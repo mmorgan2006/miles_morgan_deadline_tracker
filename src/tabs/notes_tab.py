@@ -8,6 +8,7 @@ from class_list import ClassList
 from classes import Class, NewClass
 from notebook import NewNoteBook, NoteBook
 from notepage import NotePage, NoteSettings
+from note import Note
 
 
 class NotesTab(qt.QWidget):
@@ -18,6 +19,7 @@ class NotesTab(qt.QWidget):
         self.user = load_data.get_json("user.json")
         self.classes = list(self.user["classes_order_notes"])
         self.notebooks = load_data.get_json("notebooks.json")
+        self.notes = load_data.get_json("notes.json")
 
         self.NewNoteButton = qt.QPushButton("+ Note Page")
         self.NewClassButton = qt.QPushButton("+ Class")
@@ -31,8 +33,17 @@ class NotesTab(qt.QWidget):
         for notebook,data in notebooks.items():
             if data["class"] not in self.classes and data["class"] != "None":
                 del self.notebooks[notebook]
+                continue
             self.AddNotebookWidget(data)
+        notes = self.notes.copy()
+        for note,data in notes.items():
+            if (data["class"] not in self.classes and data["class"] != "None") or (data["notebook_id"] not in self.notebooks and data["notebook_id"] != "-1"):
+                del self.notes[note]
+                continue
+            self.AddNoteWidget(data)
         save_data.save_json("notebooks.json",self.notebooks)
+        save_data.save_json("notes.json",self.notes)
+
 
         layout = qt.QVBoxLayout()
         buttons = qt.QHBoxLayout()
@@ -96,12 +107,11 @@ class NotesTab(qt.QWidget):
 
 
             dialog = NotePage(data)
-
-            dialog.setModal(False)
             dialog.exec()
             data["text"] = dialog.textbox.toHtml()
             notes[id] = data
             save_data.save_json("notes.json",notes)
+            self.AddNoteWidget(data)
     def AddNoteBook(self):
         dialog = NewNoteBook()
         if dialog.exec() == qt.QDialog.DialogCode.Accepted:
@@ -123,3 +133,6 @@ class NotesTab(qt.QWidget):
         #widget.delete_requested.connect(self.RemoveNotebook)
         #widget.edit_requested.connect(self.EditNotebook)
         self.NotesList.addItem(notebook)
+    def AddNoteWidget(self, data):
+        note = Note(data)
+        self.NotesList.addItem(note)

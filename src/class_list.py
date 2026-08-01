@@ -3,6 +3,7 @@ import PySide6.QtWidgets as qt
 from assignment import Assignment
 from classes import Class
 from due_date_sort import sort
+from note import Note
 from notebook import NoteBook
 
 
@@ -10,6 +11,7 @@ class ClassList(qt.QWidget):
     def __init__(self):
         super().__init__()
         self.classes = {}
+        self.notebooks = {}
         scroll = qt.QScrollArea()
         scroll.setWidgetResizable(True)
         content = qt.QWidget()
@@ -34,9 +36,29 @@ class ClassList(qt.QWidget):
                 class_name = "Unordered"
             self.classes[class_name]["widget"].addItem(widget)
             self.classes[class_name]["contents"].append(widget)
+            if isinstance(widget, NoteBook):
+                self.notebooks[str(widget.data["id"])] = {"widget": widget,"contents": []}
+        elif isinstance(widget, Note):
+            class_name = widget.data["class"]
+            notebook_id = str(widget.data["notebook_id"])
+            if notebook_id != "-1":
+                self.notebooks[notebook_id]["widget"].addItem(widget)
+                self.notebooks[notebook_id]["contents"].append(widget)
+            else:
+                if widget.data["class"] == "None":
+                    class_name = "Unordered"
+                self.classes[class_name]["widget"].addItem(widget)
+                self.classes[class_name]["contents"].append(widget)
     def removeItem(self, widget):
         self.content_layout.removeWidget(widget)
         if isinstance(widget,Assignment):
+            if widget.data["class"] == "None":
+                self.classes["Unordered"]["contents"].remove(widget)
+            else:
+                self.classes[widget.data["class"]]["contents"].remove(widget)
+        elif isinstance(widget,Note):
+            if widget.data["notebook_id"] != "-1":
+                self.notebooks[widget.data["notebook_id"]]["contents"].remove(widget)
             if widget.data["class"] == "None":
                 self.classes["Unordered"]["contents"].remove(widget)
             else:
