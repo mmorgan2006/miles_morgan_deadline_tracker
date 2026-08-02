@@ -2,12 +2,17 @@ from math import floor
 
 import PySide6.QtCore as Qt
 
+from assignment import Assignment
+from notebook import NoteBook
 
-def sort(assignments, lowIndex, highIndex):
-    if lowIndex >= highIndex: return [assignments[lowIndex]]
+
+def sort(list, lowIndex, highIndex):
+    if lowIndex >= highIndex:
+        try: return [list[lowIndex]]
+        except Exception: return list  # noqa: BLE001
     midIndex = floor((highIndex + lowIndex)/2)
-    leftHalf = sort(assignments,lowIndex,midIndex)
-    rightHalf = sort(assignments, midIndex+1,highIndex)
+    leftHalf = sort(list,lowIndex,midIndex)
+    rightHalf = sort(list, midIndex+1,highIndex)
     return merge(leftHalf, rightHalf)
 
 def merge(leftHalf, rightHalf):
@@ -34,7 +39,12 @@ def get_days(assignment):
     return Qt.QDate.currentDate().daysTo(date)
 
 def compare(first, second):
-    if get_days(first) != get_days(second):
-        return get_days(first) < get_days(second)
-    if first.data["name"] != second.data["name"]:
-        return first.data["name"] < second.data["name"]
+    if isinstance(first, Assignment):
+        if get_days(first) != get_days(second):
+            return get_days(first) < get_days(second)
+        if first.data["name"] != second.data["name"]:
+            return first.data["name"] < second.data["name"]
+        else:
+            return False
+    if isinstance(first, NoteBook):
+        return first.data["index"] < second.data["index"]

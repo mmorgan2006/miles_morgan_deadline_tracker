@@ -9,14 +9,6 @@ class Note(qt.QPushButton):
     def __init__(self,data):
         super().__init__()
 
-        self.setObjectName("NoteCard")
-        self.setStyleSheet("""
-            #AssignmentCard {
-                background-color: #2b2b2b;
-                border: 1px solid #3f3f3f;
-                border-radius: 8px;
-            }
-        """)
         self.setFixedHeight(40)
         self.data = data
         self.id = data["id"]

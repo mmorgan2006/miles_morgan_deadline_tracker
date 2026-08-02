@@ -8,7 +8,7 @@ import load_data
 class NotePage(qt.QDialog):
     def __init__(self, data):
         super().__init__()
-        self.setWindowTitle("Note Page")
+        self.setWindowTitle(data["name"])
         self.resize(800,600)
         self.setWindowFlags(
                 self.windowFlags()
@@ -73,7 +73,7 @@ class NoteSettings(qt.QDialog):
 
         self.setWindowTitle("Note Page")
         self.setMinimumWidth(350)
-        self.setMinimumHeight(180)
+        self.setMinimumHeight(140)
 
         self.name = qt.QLineEdit()
         self.name.setPlaceholderText("e.g. Week 1 Notes")
@@ -88,12 +88,7 @@ class NoteSettings(qt.QDialog):
         form = qt.QFormLayout()
         form.addRow("Name: ",self.name)
         form.addRow("Class: ",self.class_choice)
-
-        self.container = qt.QWidget()
-        self.container.setVisible(False)
-        form2 = qt.QFormLayout(self.container)
-        form2.addRow("Notebook: ",self.notebook_choice)
-        form.addRow(self.container)
+        form.addRow("Notebook: ",self.notebook_choice)
         buttons = qt.QDialogButtonBox(
             qt.QDialogButtonBox.StandardButton.Ok
             | qt.QDialogButtonBox.StandardButton.Cancel
@@ -116,14 +111,14 @@ class NoteSettings(qt.QDialog):
     def toggle_notebooks(self):
         notebooks = [f["name"] for f in self.notebooks if f["class"] == self.class_choice.currentText()]
         self.notebook_ids = [f["id"] for f in self.notebooks if f["class"] == self.class_choice.currentText()]
-        self.container.setVisible(len(notebooks) > 0)
         self.notebook_choice.clear()
         self.notebook_choice.addItem("None")
         self.notebook_choice.addItems(notebooks)
     def get_data(self):
-        id = str(self.notebook_ids[self.notebook_choice.currentIndex() - 1])
-        if self.notebook_choice.currentIndex() - 1 == -1:
+        if self.notebook_choice.currentIndex() - 1 < 0:
             id = "-1"
+        else:
+            id = str(self.notebook_ids[self.notebook_choice.currentIndex() - 1])
         return {
             "name": self.name.text().strip(),
             "class": self.class_choice.currentText(),

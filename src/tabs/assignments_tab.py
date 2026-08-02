@@ -42,7 +42,7 @@ class AssignmentsTab(qt.QWidget):
                 continue
             self.AddAssignmentWidget(assignment)
         self.setUpdatesEnabled(True)
-        self.AssignmentsList.sort()
+        self.AssignmentsList.sortAssignments()
 
         self.NewAssignmentButton.clicked.connect(self.AddAssignment)
         self.NewClassButton.clicked.connect(self.AddClass)
@@ -57,7 +57,7 @@ class AssignmentsTab(qt.QWidget):
             self.assignments[str(id)] = data
             save_data.save_json("assignments.json",self.assignments)
             self.AddAssignmentWidget(data)
-            self.AssignmentsList.sort()
+            self.AssignmentsList.sortAssignments()
 
     def AddClass(self):
         dialog = NewClass()
@@ -105,7 +105,7 @@ class AssignmentsTab(qt.QWidget):
         self.assignments[str(id)] = data
         save_data.save_json("assignments.json",self.assignments)
         self.AddAssignmentWidget(data)
-        self.AssignmentsList.sort()
+        self.AssignmentsList.sortAssignments()
 
     def AddClassWidget(self,name):
         widget = Class(name)

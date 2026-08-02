@@ -2,9 +2,9 @@ import PySide6.QtWidgets as qt
 
 from assignment import Assignment
 from classes import Class
-from due_date_sort import sort
 from note import Note
 from notebook import NoteBook
+from sort import sort
 
 
 class ClassList(qt.QWidget):
@@ -51,7 +51,7 @@ class ClassList(qt.QWidget):
                 self.classes[class_name]["contents"].append(widget)
     def removeItem(self, widget):
         self.content_layout.removeWidget(widget)
-        if isinstance(widget,Assignment):
+        if isinstance(widget,(Assignment,NoteBook)):
             if widget.data["class"] == "None":
                 self.classes["Unordered"]["contents"].remove(widget)
             else:
@@ -66,7 +66,7 @@ class ClassList(qt.QWidget):
         else:
             if widget.class_name in self.classes: del self.classes[widget.class_name]
         widget.deleteLater()
-    def sort(self):
+    def sortAssignments(self):
         for class_name in self.classes:
             arr = self.classes[class_name]["contents"]
             if len(arr) > 1:
@@ -74,3 +74,18 @@ class ClassList(qt.QWidget):
                 self.classes[class_name]["contents"] = sort(arr,0,len(arr)-1)
                 for i in range(len(arr)):
                     class_widget.content_layout.insertWidget(i, self.classes[class_name]["contents"][i])
+    def sortNotebooks(self):
+        notebooks = [i["widget"] for i in self.notebooks.values()]
+        for i in sort(notebooks,0,len(notebooks)-1):
+            if i.data["class"] == "None": class_name = "Unordered"
+            else: class_name = i.data["class"]
+            self.classes[class_name]["widget"].content_layout.removeWidget(i)
+            self.classes[class_name]["widget"].content_layout.addWidget(i)
+
+        for list in [n["contents"] for n in self.classes.values()]:
+            for i in list:
+                if isinstance(i, Note):
+                    if i.data["class"] == "None": class_name = "Unordered"
+                    else: class_name = i.data["class"]
+                    self.classes[class_name]["widget"].content_layout.removeWidget(i)
+                    self.classes[class_name]["widget"].content_layout.addWidget(i)
