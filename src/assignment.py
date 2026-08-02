@@ -2,12 +2,15 @@ import PySide6.QtCore as Qt
 import PySide6.QtWidgets as qt
 
 import load_data
+from flowlayout import FlowLayout
+from note import MiniNote
+from notepicker import NotePicker
 from utilities import convert_date
 
 
 class Assignment(qt.QFrame):
     delete_requested = Qt.Signal(object)
-    edit_requested = Qt.Signal(object)
+    edit_requested = Qt.Signal(object, bool)
     def __init__(self, data):
         super().__init__()
 
@@ -77,8 +80,19 @@ class Assignment(qt.QFrame):
         details_top = qt.QHBoxLayout()
         details_top.addWidget(due_date_label)
         details_top.addStretch()
+
+
         details_layout = qt.QVBoxLayout(self.details)
         details_layout.addLayout(details_top)
+
+        notes = load_data.get_json("notes.json")
+        if "notes" in self.data:
+            details_bottom = FlowLayout()
+            for i in self.data["notes"]:
+                if i in notes:
+                    note = MiniNote(i)
+                    details_bottom.addWidget(note)
+            details_layout.addLayout(details_bottom)
         if self.data["details"] != "":
             details_label = qt.QLabel(self.data["details"])
             details_label.setWordWrap(True)
@@ -103,9 +117,10 @@ class Assignment(qt.QFrame):
             self.delete_requested.emit(self)
     def edit(self):
         classes = load_data.get_json("user.json")["classes_order_assignments"]
+        expanded = self.details_button.isChecked()
         self.dialog = NewAssignment(self.data, classes)
         if self.dialog.exec() == qt.QDialog.DialogCode.Accepted:
-            self.edit_requested.emit(self)
+            self.edit_requested.emit(self, expanded)
     def toggle_details(self):
             expanded = self.details_button.isChecked()
             self.details.setVisible(expanded)
@@ -135,16 +150,25 @@ class NewAssignment(qt.QDialog):
         self.details = qt.QTextEdit()
         self.details.setPlaceholderText("Optional details...")
         self.details.setMaximumHeight(100)
+
+        all_notes = load_data.get_json("notes.json")
+        linked_ids = set()
+
         if data is not None:
             self.assignment_name.setText(data["name"])
             self.due.setDate(Qt.QDate.fromString(data["due_date"], "MM-dd-yyyy"))
             self.class_choice.setCurrentText(data["class"])
             self.details.setText(data["details"])
+            linked_ids = {id for id in data.get("notes", []) if id in all_notes}
+
+        self.note_picker = NotePicker(all_notes, linked_ids)
+
         form = qt.QFormLayout()
         form.addRow("Name: ",self.assignment_name)
         form.addRow("Class: ", self.class_choice)
         form.addRow("Due Date: ",self.due)
         form.addRow("Details: ",self.details)
+        form.addRow("Notes: ",self.note_picker)
 
         buttons = qt.QDialogButtonBox(
             qt.QDialogButtonBox.StandardButton.Ok
@@ -168,4 +192,5 @@ class NewAssignment(qt.QDialog):
         return {"name": self.assignment_name.text().strip(),
                 "due_date": self.due.date().toString("MM-dd-yyyy"),
                 "class": self.class_choice.currentText(),
-                "details": self.details.toPlainText().strip()}
+                "details": self.details.toPlainText().strip(),
+                "notes": list(self.note_picker.selected_ids())}

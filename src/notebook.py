@@ -84,7 +84,7 @@ class NewNoteBook(qt.QDialog):
         self.setMinimumHeight(90)
 
         self.name = qt.QLineEdit()
-        self.name.setPlaceholderText("e.g. CS 120")
+        self.name.setPlaceholderText("e.g. Week 1 Notes")
 
         self.class_choice = qt.QComboBox()
         self.class_choice.addItem("None")

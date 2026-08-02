@@ -26,8 +26,49 @@ class Note(qt.QPushButton):
         self.clicked.connect(self.open_note)
     def open_note(self):
         notes = load_data.get_json("notes.json")
-        dialog = NotePage(self.data)
+        data = notes[self.id]
+        dialog = NotePage(data)
         dialog.exec()
-        self.data["text"] = dialog.textbox.toHtml()
-        notes[self.data["id"]] = self.data
+        data["text"] = dialog.textbox.toHtml()
+        notes[data["id"]] = data
         save_data.save_json("notes.json",notes)
+
+
+class MiniNote(qt.QPushButton):
+    def __init__(self,id):
+        super().__init__()
+        self.data = load_data.get_json("notes.json")[id]
+        self.id = id
+        self.setText(self.data["name"])
+        self.setSizePolicy(qt.QSizePolicy.Fixed, qt.QSizePolicy.Fixed) #type: ignore
+
+        self.setStyleSheet("""
+            QPushButton {
+                border-radius:10px;
+                padding: 6px 16px;
+                background-color: #3b82f6;
+                color: white;
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: #2563eb;
+            }
+            QPushButton:pressed {
+                background-color: #1d4ed8;
+            }
+        """)
+        self.clicked.connect(self.open_note)
+    def open_note(self):
+        notes = load_data.get_json("notes.json")
+        if self.id in notes:
+            if self.text() != notes[self.id]["name"]:
+                self.setText(notes[self.id]["name"])
+            data = notes[self.id]
+            dialog = NotePage(data)
+            dialog.exec()
+            data["text"] = dialog.textbox.toHtml()
+            notes[data["id"]] = data
+            save_data.save_json("notes.json",notes)
+        else:
+            qt.QMessageBox.warning(self,"Error","These notes are missing or deleted.")
+            self.deleteLater()

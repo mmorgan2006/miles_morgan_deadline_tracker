@@ -74,8 +74,10 @@ class AssignmentsTab(qt.QWidget):
             self.classAdded.emit(name)
             self.classes.append(name)
 
-    def AddAssignmentWidget(self,data):
+    def AddAssignmentWidget(self,data,expanded=False):
         widget = Assignment(data)
+        widget.details_button.setChecked(expanded)
+        widget.toggle_details()
         widget.delete_requested.connect(self.RemoveAssignmentWidget)
         widget.edit_requested.connect(self.Edit)
         self.AssignmentsList.addItem(widget)
@@ -97,14 +99,14 @@ class AssignmentsTab(qt.QWidget):
         self.AssignmentsList.removeItem(widget)
         save_data.save_json("user.json",self.user)
         self.classRemoved.emit(widget.class_name)
-    def Edit(self, widget):
+    def Edit(self, widget, expanded):
         self.RemoveAssignmentWidget(widget)
         data = widget.dialog.get_data()
         id = widget.data["id"]
         data["id"] = id
         self.assignments[str(id)] = data
         save_data.save_json("assignments.json",self.assignments)
-        self.AddAssignmentWidget(data)
+        self.AddAssignmentWidget(data,expanded)
         self.AssignmentsList.sortAssignments()
 
     def AddClassWidget(self,name):

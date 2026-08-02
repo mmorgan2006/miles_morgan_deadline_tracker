@@ -76,7 +76,7 @@ class NoteSettings(qt.QDialog):
         self.setMinimumHeight(140)
 
         self.name = qt.QLineEdit()
-        self.name.setPlaceholderText("e.g. Week 1 Notes")
+        self.name.setPlaceholderText("e.g. Monday Notes")
 
         self.class_choice = qt.QComboBox()
         self.class_choice.addItem("None")
