@@ -1,16 +1,20 @@
 import PySide6.QtCore as Qt
 import PySide6.QtWidgets as qt
 
+import load_data
+import save_data
+
 
 class Class(qt.QFrame):
     delete_requested = Qt.Signal(object)
+    edit_requested = Qt.Signal(str, str)
     def __init__(self,name):
         super().__init__()
 
         self.setObjectName("ClassContainer")
         self.setStyleSheet("""
             #ClassContainer {
-                border: 1px solid #333333;
+                border: 1px solid #222222;
                 border-radius: 10px;
             }
         """)
@@ -43,6 +47,7 @@ class Class(qt.QFrame):
 
         self.list_toggle.clicked.connect(self.toggle_view)
         self.delete_button.clicked.connect(self.delete)
+        self.rename.clicked.connect(self.edit)
     def addItem(self,widget):
         self.content_layout.addWidget(widget)
     def removeItem(self, widget):
@@ -61,8 +66,20 @@ class Class(qt.QFrame):
         )
         if reply == qt.QMessageBox.StandardButton.Yes:
             self.delete_requested.emit(self)
+    def edit(self):
+        dialog = NewClass(self.class_name)
+        if dialog.exec() == qt.QDialog.DialogCode.Accepted:
+            classes = load_data.get_json("user.json")
+            old_name = self.class_name
+            self.class_name = dialog.class_name.text().strip()
+            self.name.setText(self.class_name)
+            classes["classes_order_assignments"][classes["classes_order_assignments"].index(old_name)] = self.class_name
+            classes["classes_order_notes"][classes["classes_order_notes"].index(old_name)] = self.class_name
+
+            save_data.save_json("user.json", classes)
+            self.edit_requested.emit(old_name, self.class_name)
 class NewClass(qt.QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, name="",parent=None):
         super().__init__(parent)
         self.setWindowTitle("Class")
         self.setMinimumWidth(350)
@@ -70,7 +87,7 @@ class NewClass(qt.QDialog):
 
         self.class_name = qt.QLineEdit()
         self.class_name.setPlaceholderText("e.g. CS 120")
-
+        self.class_name.setText(name)
         form = qt.QFormLayout()
         form.addRow("Class: ",self.class_name)
 

@@ -15,6 +15,7 @@ from sort import sort
 class NotesTab(qt.QWidget):
     classAdded = Qt.Signal(str)
     classRemoved = Qt.Signal(str)
+    classEdit = Qt.Signal(str, str)
     def __init__(self):
         super().__init__()
         self.user = load_data.get_json("user.json")
@@ -82,6 +83,7 @@ class NotesTab(qt.QWidget):
     def AddClassWidget(self,name):
         widget = Class(name)
         widget.delete_requested.connect(self.RemoveClassWidget)
+        widget.edit_requested.connect(self.editClass)
         self.NotesList.addItem(widget)
     def AcceptClass(self,name):
         self.classes.append(name)
@@ -233,3 +235,45 @@ class NotesTab(qt.QWidget):
         self.notebooks[str(id)] = data
         save_data.save_json("notebooks.json",self.notebooks)
         save_data.save_json("notes.json",saved_notes)
+    def editClass(self,old_name,new_name):
+        contents = self.NotesList.classes[old_name]
+        self.NotesList.classes[new_name] = contents
+        self.NotesList.classes[new_name]["widget"].class_name = new_name
+        self.NotesList.classes[new_name]["widget"].name.setText(new_name)
+        self.classEdit.emit(old_name,new_name)
+
+        notes = load_data.get_json("notes.json")
+        notebooks = load_data.get_json("notebooks.json")
+        for i in self.NotesList.classes[new_name]["contents"]:
+            if isinstance(i,Note):
+                i.data["class"] = new_name
+                notes[i.data["id"]] = i.data
+            elif isinstance(i, NoteBook):
+                i.data["class"] = new_name
+                notebooks[i.data["id"]] = i.data
+                for n in self.NotesList.notebooks[i.data["id"]]["contents"]:
+                    i.data["class"] = new_name
+                    notes[i.data["id"]] = i.data
+        save_data.save_json("notes.json",notes)
+        save_data.save_json("notebooks.json",notebooks)
+
+    def AcceptEdit(self,old_name,new_name):
+        contents = self.NotesList.classes[old_name]
+        self.NotesList.classes[new_name] = contents
+        self.NotesList.classes[new_name]["widget"].class_name = new_name
+        self.NotesList.classes[new_name]["widget"].name.setText(new_name)
+
+        notes = load_data.get_json("notes.json")
+        notebooks = load_data.get_json("notebooks.json")
+        for i in self.NotesList.classes[new_name]["contents"]:
+            if isinstance(i,Note):
+                i.data["class"] = new_name
+                notes[i.data["id"]] = i.data
+            elif isinstance(i, NoteBook):
+                i.data["class"] = new_name
+                notebooks[i.data["id"]] = i.data
+                for n in self.NotesList.notebooks[i.data["id"]]["contents"]:
+                    i.data["class"] = new_name
+                    notes[i.data["id"]] = i.data
+        save_data.save_json("notes.json",notes)
+        save_data.save_json("notebooks.json",notebooks)

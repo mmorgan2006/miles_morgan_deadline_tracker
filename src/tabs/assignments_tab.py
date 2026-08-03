@@ -12,7 +12,7 @@ from classes import Class, NewClass
 class AssignmentsTab(qt.QWidget):
     classAdded = Qt.Signal(str)
     classRemoved = Qt.Signal(str)
-
+    classEdit = Qt.Signal(str, str)
     def __init__(self):
         super().__init__()
         self.user = load_data.get_json("user.json")
@@ -41,6 +41,7 @@ class AssignmentsTab(qt.QWidget):
                 del self.assignments[id]
                 continue
             self.AddAssignmentWidget(assignment)
+        save_data.save_json("assignments.json",self.assignments)
         self.setUpdatesEnabled(True)
         self.AssignmentsList.sortAssignments()
 
@@ -54,6 +55,7 @@ class AssignmentsTab(qt.QWidget):
             data = dialog.get_data()
             id = utilities.generate_id("assignments.json")
             data["id"] = str(id)
+            data["status"] = "incomplete"
             self.assignments[str(id)] = data
             save_data.save_json("assignments.json",self.assignments)
             self.AddAssignmentWidget(data)
@@ -113,7 +115,35 @@ class AssignmentsTab(qt.QWidget):
     def AddClassWidget(self,name):
         widget = Class(name)
         widget.delete_requested.connect(self.RemoveClassWidget)
+        widget.edit_requested.connect(self.editClass)
         self.AssignmentsList.addItem(widget)
     def AcceptClass(self,name):
         self.classes.append(name)
         self.AddClassWidget(name)
+    def editClass(self,old_name,new_name):
+        contents = self.AssignmentsList.classes[old_name]
+        self.AssignmentsList.classes[new_name] = contents
+        self.AssignmentsList.classes[new_name]["widget"].class_name = new_name
+        self.AssignmentsList.classes[new_name]["widget"].name.setText(new_name)
+        self.classEdit.emit(old_name,new_name)
+
+        assignments = load_data.get_json("assignments.json")
+        for i in self.AssignmentsList.classes[new_name]["contents"]:
+            if isinstance(i,Assignment):
+                i.data["class"] = new_name
+                assignments[i.data["id"]] = i.data
+        save_data.save_json("assignments.json",assignments)
+
+
+    def AcceptEdit(self,old_name,new_name):
+        contents = self.AssignmentsList.classes[old_name]
+        self.AssignmentsList.classes[new_name] = contents
+        self.AssignmentsList.classes[new_name]["widget"].class_name = new_name
+        self.AssignmentsList.classes[new_name]["widget"].name.setText(new_name)
+
+        assignments = load_data.get_json("assignments.json")
+        for i in self.AssignmentsList.classes[new_name]["contents"]:
+            if isinstance(i,Assignment):
+                i.data["class"] = new_name
+                assignments[i.data["id"]] = i.data
+        save_data.save_json("assignments.json",assignments)

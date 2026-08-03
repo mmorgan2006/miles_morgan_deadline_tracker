@@ -20,8 +20,10 @@ class MainWindow(qt.QMainWindow):
         self.resize(600,700)
         assignments_tab.classAdded.connect(notes_tab.AcceptClass)
         assignments_tab.classRemoved.connect(notes_tab.RemoveClass)
+        assignments_tab.classEdit.connect(notes_tab.AcceptEdit)
         notes_tab.classAdded.connect(assignments_tab.AcceptClass)
         notes_tab.classRemoved.connect(assignments_tab.RemoveClass)
+        notes_tab.classEdit.connect(assignments_tab.AcceptEdit)
 
 if __name__ == "__main__":
     load_data.initialize()
