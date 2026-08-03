@@ -14,25 +14,14 @@ def get_data_dir():
     data_dir = base / "mmorgan-deadline-tracker"
     data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir
-
-def load_classes():
-    dir = get_data_dir() / "assignments/classes"
-    if not dir.exists():
-        dir.mkdir(parents=True,exist_ok=True)
-        return []
     return [f.name for f in dir.iterdir() if f.is_dir()]
+
 def get_json(path):
     dir = get_data_dir() / path
+    if not dir.exists():
+        initialize()
     with open(dir,"r") as file:
         return json.load(file)
-def load_assignments(path):
-    dir = get_data_dir() / f"{path}"
-    assignments = []
-    for f in dir.iterdir():
-        if f.is_file():
-            with open(f,"r") as file:
-                assignments.append(json.load(file))
-    return assignments
 
 def initialize():
     dir = get_data_dir()

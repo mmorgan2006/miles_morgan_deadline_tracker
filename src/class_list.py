@@ -52,10 +52,13 @@ class ClassList(qt.QWidget):
     def removeItem(self, widget):
         self.content_layout.removeWidget(widget)
         if isinstance(widget,(Assignment,NoteBook)):
+            data = widget.data.copy()
             if widget.data["class"] == "None":
                 self.classes["Unordered"]["contents"].remove(widget)
             else:
                 self.classes[widget.data["class"]]["contents"].remove(widget)
+            if isinstance(widget, NoteBook):
+                del self.notebooks[data["id"]]
         elif isinstance(widget,Note):
             if widget.data["notebook_id"] == "-1":
                 if widget.data["class"] == "None":

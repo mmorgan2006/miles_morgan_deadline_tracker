@@ -8,6 +8,7 @@ from notepage import NotePage, NoteSettings
 
 class Note(qt.QPushButton):
     edit_requested = Qt.Signal(object)
+    delete_requested = Qt.Signal(object)
     def __init__(self,data):
         super().__init__()
 
@@ -27,6 +28,7 @@ class Note(qt.QPushButton):
 
         self.clicked.connect(self.open_note)
         self.edit_button.clicked.connect(self.edit_note)
+        self.delete_button.clicked.connect(self.delete_note)
     def open_note(self):
         notes = load_data.get_json("notes.json")
         data = notes[self.id]
@@ -46,6 +48,15 @@ class Note(qt.QPushButton):
             notes[self.id] = self.newdata
             save_data.save_json("notes.json", notes)
             self.edit_requested.emit(self)
+    def delete_note(self):
+        reply = qt.QMessageBox.question(
+            self,
+            "Delete Notepage",
+            "Are you sure you want to permanently delete this note?",
+            qt.QMessageBox.StandardButton.Yes | qt.QMessageBox.StandardButton.No
+        )
+        if reply == qt.QMessageBox.StandardButton.Yes:
+            self.delete_requested.emit(self)
 
 class MiniNote(qt.QPushButton):
     def __init__(self,id):
@@ -73,7 +84,11 @@ class MiniNote(qt.QPushButton):
         self.clicked.connect(self.open_note)
     def open_note(self):
         notes = load_data.get_json("notes.json")
-        if self.id in notes:
+        notebooks = load_data.get_json("notebooks.json")
+        if self.id not in notes or self.data["notebook_id"] not in notebooks:
+            qt.QMessageBox.warning(self,"Error","These notes are missing or deleted.")
+            self.deleteLater()
+        else:
             if self.text() != notes[self.id]["name"]:
                 self.setText(notes[self.id]["name"])
             data = notes[self.id]
@@ -82,6 +97,3 @@ class MiniNote(qt.QPushButton):
             data["text"] = dialog.textbox.toHtml()
             notes[data["id"]] = data
             save_data.save_json("notes.json",notes)
-        else:
-            qt.QMessageBox.warning(self,"Error","These notes are missing or deleted.")
-            self.deleteLater()

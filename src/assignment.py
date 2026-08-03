@@ -86,10 +86,11 @@ class Assignment(qt.QFrame):
         details_layout.addLayout(details_top)
 
         notes = load_data.get_json("notes.json")
+        notebooks = load_data.get_json("notebooks.json")
         if "notes" in self.data:
             details_bottom = FlowLayout()
             for i in self.data["notes"]:
-                if i in notes:
+                if i in notes and (notes[i]["notebook_id"] in notebooks or notes[i]["notebook_id"] == "-1"):
                     note = MiniNote(i)
                     details_bottom.addWidget(note)
             details_layout.addLayout(details_bottom)

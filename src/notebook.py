@@ -7,6 +7,7 @@ import load_data
 class NoteBook(qt.QFrame):
     delete_requested = Qt.Signal(object)
     move_requested = Qt.Signal(object, int)
+    edit_requested = Qt.Signal(object, bool)
     def __init__(self,data):
         super().__init__()
         name = data["name"]
@@ -54,6 +55,7 @@ class NoteBook(qt.QFrame):
         self.delete_button.clicked.connect(self.delete)
         self.move_up_button.clicked.connect(lambda: self.move_requested.emit(self, 1))
         self.move_down_button.clicked.connect(lambda: self.move_requested.emit(self, -1))
+        self.rename.clicked.connect(self.edit)
     def addItem(self,widget):
         self.content_layout.addWidget(widget)
     def removeItem(self, widget):
@@ -73,10 +75,16 @@ class NoteBook(qt.QFrame):
         if reply == qt.QMessageBox.StandardButton.Yes:
             self.delete_requested.emit(self.data["id"])
 
+    def edit(self):
+        expanded = self.list_toggle.isChecked()
+        self.dialog = NewNoteBook(self.data)
+        if self.dialog.exec() == qt.QDialog.DialogCode.Accepted:
+            self.edit_requested.emit(self, expanded)
+
 
 
 class NewNoteBook(qt.QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, data=None, parent=None):
         super().__init__(parent)
         classes = load_data.get_json("user.json")["classes_order_notes"]
         self.setWindowTitle("Notebook")
@@ -94,6 +102,9 @@ class NewNoteBook(qt.QDialog):
         form.addRow("Name: ",self.name)
         form.addRow("Class: ",self.class_choice)
 
+        if data is not None:
+            self.name.setText(data["name"])
+            self.class_choice.setCurrentText(data["class"])
         buttons = qt.QDialogButtonBox(
             qt.QDialogButtonBox.StandardButton.Ok
             | qt.QDialogButtonBox.StandardButton.Cancel

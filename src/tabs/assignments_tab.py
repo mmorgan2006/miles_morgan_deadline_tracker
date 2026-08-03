@@ -83,6 +83,7 @@ class AssignmentsTab(qt.QWidget):
         self.AssignmentsList.addItem(widget)
 
     def RemoveAssignmentWidget(self,widget):
+        self.assignments = load_data.get_json("assignments.json")
         name = widget.data["id"]
         self.AssignmentsList.removeItem(widget)
         self.assignments.pop(name)

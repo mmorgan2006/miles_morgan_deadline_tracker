@@ -139,27 +139,33 @@ class NotesTab(qt.QWidget):
             self.NotesList.sortNotebooks()
     def AddNotebookWidget(self, notebook):
         notebook.delete_requested.connect(self.RemoveNotebook)
-        #notebook.edit_requested.connect(self.EditNotebook)
+        notebook.edit_requested.connect(self.Edit_Notebook)
         notebook.move_requested.connect(self.move_notebook)
         self.NotesList.addItem(notebook)
     def AddNoteWidget(self, data):
         note = Note(data)
         note.edit_requested.connect(self.edit_note)
+        note.delete_requested.connect(self.RemoveNoteWidget)
         self.NotesList.addItem(note)
     def RemoveNotebook(self, id):
         if id in self.NotesList.notebooks:
             self.notebooks = load_data.get_json("notebooks.json")
+            notes = load_data.get_json("notes.json")
             index = self.notebooks[id]["index"]
             if self.notebooks[id]["class"] == "None": class_name = "Unordered"
             else: class_name = self.notebooks[id]["class"]
 
             for i in self.NotesList.classes[class_name]["contents"]:
                 if isinstance(i, NoteBook) and self.notebooks[i.data["id"]]["index"] > index: self.notebooks[i.data["id"]]["index"] -= 1
+            for i in self.NotesList.notebooks[id]["contents"]:
+                if isinstance(i, Note): del notes[i.data["id"]]
 
             widget = self.NotesList.notebooks[id]["widget"]
             self.NotesList.removeItem(widget)
             del self.notebooks[id]
             save_data.save_json("notebooks.json",self.notebooks)
+            save_data.save_json("notes.json",notes)
+
     def move_notebook(self, notebook, direction):
         notebooks = load_data.get_json("notebooks.json")
         if notebook.data["class"] == "None": class_name = "Unordered"
@@ -183,3 +189,40 @@ class NotesTab(qt.QWidget):
         self.NotesList.removeItem(note)
         self.AddNoteWidget(data)
         self.NotesList.sortNotebooks()
+    def RemoveNoteWidget(self,widget):
+        self.notes = load_data.get_json("notes.json")
+        name = widget.data["id"]
+        self.NotesList.removeItem(widget)
+        self.notes.pop(name)
+        save_data.save_json("notes.json",self.notes)
+    def Edit_Notebook(self, widget, expanded):
+        self.notebooks = load_data.get_json("notebooks.json")
+        notes = self.NotesList.notebooks[widget.data["id"]]["contents"]
+        for note in notes:
+            self.NotesList.removeItem(note)
+        data = widget.data.copy()
+        data["name"] = widget.dialog.name.text().strip()
+        data["class"] = widget.dialog.class_choice.currentText()
+        id = widget.data["id"]
+        if data["class"] != widget.data["class"]:
+            if data["class"] == "None": class_name = "Unordered"
+            else: class_name = data["class"]
+            if widget.data["class"] == "None": old_class_name = "Unordered"
+            else: old_class_name = widget.data["class"]
+
+            data["index"] = len([i for i in self.NotesList.classes[class_name]["contents"] if isinstance(i, NoteBook)])
+            for i in self.NotesList.classes[old_class_name]["contents"]:
+                if isinstance(i, NoteBook) and self.notebooks[i.data["id"]]["index"] > widget.data["index"]:
+                    self.notebooks[i.data["id"]]["index"] -= 1
+                    self.NotesList.classes[old_class_name]["contents"][self.NotesList.classes[old_class_name]["contents"].index(i)].data["index"] -= 1
+        self.notebooks[str(id)] = data
+
+        self.NotesList.removeItem(widget)
+        notebook = NoteBook(data)
+        notebook.list_toggle.setChecked(expanded)
+        for note in notes:
+            notebook.addItem(note)
+        notebook.toggle_view()
+        self.AddNotebookWidget(notebook)
+        self.NotesList.sortNotebooks()
+        save_data.save_json("notebooks.json",self.notebooks)
