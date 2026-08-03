@@ -197,9 +197,8 @@ class NotesTab(qt.QWidget):
         save_data.save_json("notes.json",self.notes)
     def Edit_Notebook(self, widget, expanded):
         self.notebooks = load_data.get_json("notebooks.json")
+        saved_notes = load_data.get_json("notes.json")
         notes = self.NotesList.notebooks[widget.data["id"]]["contents"]
-        for note in notes:
-            self.NotesList.removeItem(note)
         data = widget.data.copy()
         data["name"] = widget.dialog.name.text().strip()
         data["class"] = widget.dialog.class_choice.currentText()
@@ -215,14 +214,22 @@ class NotesTab(qt.QWidget):
                 if isinstance(i, NoteBook) and self.notebooks[i.data["id"]]["index"] > widget.data["index"]:
                     self.notebooks[i.data["id"]]["index"] -= 1
                     self.NotesList.classes[old_class_name]["contents"][self.NotesList.classes[old_class_name]["contents"].index(i)].data["index"] -= 1
-        self.notebooks[str(id)] = data
+            for i in notes:
+                saved_notes[i.data["id"]]["class"] = data["class"]
+
 
         self.NotesList.removeItem(widget)
         notebook = NoteBook(data)
         notebook.list_toggle.setChecked(expanded)
-        for note in notes:
-            notebook.addItem(note)
+
+
+
         notebook.toggle_view()
         self.AddNotebookWidget(notebook)
+        for note in notes:
+            notebook.addItem(note)
         self.NotesList.sortNotebooks()
+        self.NotesList.notebooks[data["id"]]["contents"] = notes
+        self.notebooks[str(id)] = data
         save_data.save_json("notebooks.json",self.notebooks)
+        save_data.save_json("notes.json",saved_notes)
