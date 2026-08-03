@@ -252,8 +252,8 @@ class NotesTab(qt.QWidget):
                 i.data["class"] = new_name
                 notebooks[i.data["id"]] = i.data
                 for n in self.NotesList.notebooks[i.data["id"]]["contents"]:
-                    i.data["class"] = new_name
-                    notes[i.data["id"]] = i.data
+                    n.data["class"] = new_name
+                    notes[n.data["id"]] = n.data
         save_data.save_json("notes.json",notes)
         save_data.save_json("notebooks.json",notebooks)
 
@@ -273,7 +273,7 @@ class NotesTab(qt.QWidget):
                 i.data["class"] = new_name
                 notebooks[i.data["id"]] = i.data
                 for n in self.NotesList.notebooks[i.data["id"]]["contents"]:
-                    i.data["class"] = new_name
-                    notes[i.data["id"]] = i.data
+                    n.data["class"] = new_name
+                    notes[n.data["id"]] = n.data
         save_data.save_json("notes.json",notes)
         save_data.save_json("notebooks.json",notebooks)
