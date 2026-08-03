@@ -45,12 +45,21 @@ class NotePage(qt.QDialog):
 
         self.textbox.cursorPositionChanged.connect(self.update_toolbar)
         self.bold_button.clicked.connect(self.toggle_bold)
+        self.italic_button.clicked.connect(self.toggle_italic)
+        self.underline_button.clicked.connect(self.toggle_underline)
     def toggle_bold(self):
         format = qtg.QTextCharFormat()
         weight = qtg.QFont.Bold if self.bold_button.isChecked() else qtg.QFont.Normal #type: ignore
         format.setFontWeight(weight)
         self.merge_format(format)
-
+    def toggle_italic(self):
+        format = qtg.QTextCharFormat()
+        format.setFontItalic(self.italic_button.isChecked())
+        self.merge_format(format)
+    def toggle_underline(self):
+        format = qtg.QTextCharFormat()
+        format.setFontUnderline(self.underline_button.isChecked())
+        self.merge_format(format)
 
     def merge_format(self, format):
         cursor = self.textbox.textCursor()
@@ -66,10 +75,10 @@ class NotePage(qt.QDialog):
         self.underline_button.setChecked(format.fontUnderline())
 
 class NoteSettings(qt.QDialog):
-    def __init__(self, parent=None):
+    def __init__(self,data=None ,parent=None):
         super().__init__(parent)
         classes = load_data.get_json("user.json")["classes_order_notes"]
-        self.notebooks = load_data.get_json("notebooks.json").values()
+        self.notebooks = load_data.get_json("notebooks.json")
 
         self.setWindowTitle("Note Page")
         self.setMinimumWidth(350)
@@ -94,6 +103,13 @@ class NoteSettings(qt.QDialog):
             | qt.QDialogButtonBox.StandardButton.Cancel
         )
 
+        self.toggle_notebooks()
+        if data != None:
+            self.name.setText(data["name"])
+            self.class_choice.setCurrentText(data["class"])
+            self.toggle_notebooks()
+            if data["notebook_id"] != "-1": self.notebook_choice.setCurrentText(self.notebooks[data["notebook_id"]]["name"])
+
         layout = qt.QVBoxLayout(self)
         layout.addLayout(form)
         layout.addWidget(buttons)
@@ -101,7 +117,7 @@ class NoteSettings(qt.QDialog):
 
         buttons.accepted.connect(self.validate)
         buttons.rejected.connect(self.reject)
-        self.toggle_notebooks()
+
         self.class_choice.currentTextChanged.connect(self.toggle_notebooks)
     def validate(self):
         if not self.name.text().strip():
@@ -109,8 +125,8 @@ class NoteSettings(qt.QDialog):
             return
         self.accept()
     def toggle_notebooks(self):
-        notebooks = [f["name"] for f in self.notebooks if f["class"] == self.class_choice.currentText()]
-        self.notebook_ids = [f["id"] for f in self.notebooks if f["class"] == self.class_choice.currentText()]
+        notebooks = [f["name"] for f in self.notebooks.values() if f["class"] == self.class_choice.currentText()]
+        self.notebook_ids = [f["id"] for f in self.notebooks.values() if f["class"] == self.class_choice.currentText()]
         self.notebook_choice.clear()
         self.notebook_choice.addItem("None")
         self.notebook_choice.addItems(notebooks)

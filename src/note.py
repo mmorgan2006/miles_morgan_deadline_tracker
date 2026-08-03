@@ -1,11 +1,13 @@
+import PySide6.QtCore as Qt
 import PySide6.QtWidgets as qt
 
 import load_data
 import save_data
-from notepage import NotePage
+from notepage import NotePage, NoteSettings
 
 
 class Note(qt.QPushButton):
+    edit_requested = Qt.Signal(object)
     def __init__(self,data):
         super().__init__()
 
@@ -24,6 +26,7 @@ class Note(qt.QPushButton):
         layout.addWidget(self.delete_button)
 
         self.clicked.connect(self.open_note)
+        self.edit_button.clicked.connect(self.edit_note)
     def open_note(self):
         notes = load_data.get_json("notes.json")
         data = notes[self.id]
@@ -32,7 +35,17 @@ class Note(qt.QPushButton):
         data["text"] = dialog.textbox.toHtml()
         notes[data["id"]] = data
         save_data.save_json("notes.json",notes)
-
+    def edit_note(self):
+        notes = load_data.get_json("notes.json")
+        self.data = notes[self.id]
+        self.dialog = NoteSettings(self.data)
+        if self.dialog.exec() == qt.QDialog.DialogCode.Accepted:
+            self.newdata = self.dialog.get_data()
+            self.newdata["id"] = self.data["id"]
+            self.newdata["text"] = self.data["text"]
+            notes[self.id] = self.newdata
+            save_data.save_json("notes.json", notes)
+            self.edit_requested.emit(self)
 
 class MiniNote(qt.QPushButton):
     def __init__(self,id):

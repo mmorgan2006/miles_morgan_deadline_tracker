@@ -57,12 +57,13 @@ class ClassList(qt.QWidget):
             else:
                 self.classes[widget.data["class"]]["contents"].remove(widget)
         elif isinstance(widget,Note):
-            if widget.data["notebook_id"] != "-1":
-                self.notebooks[widget.data["notebook_id"]]["contents"].remove(widget)
-            if widget.data["class"] == "None":
-                self.classes["Unordered"]["contents"].remove(widget)
+            if widget.data["notebook_id"] == "-1":
+                if widget.data["class"] == "None":
+                    self.classes["Unordered"]["contents"].remove(widget)
+                else:
+                    self.classes[widget.data["class"]]["contents"].remove(widget)
             else:
-                self.classes[widget.data["class"]]["contents"].remove(widget)
+                self.notebooks[widget.data["notebook_id"]]["contents"].remove(widget)
         else:
             if widget.class_name in self.classes: del self.classes[widget.class_name]
         widget.deleteLater()

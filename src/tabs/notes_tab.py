@@ -144,6 +144,7 @@ class NotesTab(qt.QWidget):
         self.NotesList.addItem(notebook)
     def AddNoteWidget(self, data):
         note = Note(data)
+        note.edit_requested.connect(self.edit_note)
         self.NotesList.addItem(note)
     def RemoveNotebook(self, id):
         if id in self.NotesList.notebooks:
@@ -177,3 +178,8 @@ class NotesTab(qt.QWidget):
             save_data.save_json("notebooks.json",notebooks)
             self.NotesList.sortNotebooks()
         self.NotesList.classes[class_name]["contents"] = contents
+    def edit_note(self, note):
+        data = note.newdata
+        self.NotesList.removeItem(note)
+        self.AddNoteWidget(data)
+        self.NotesList.sortNotebooks()

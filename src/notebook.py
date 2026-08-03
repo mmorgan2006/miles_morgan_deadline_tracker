@@ -12,7 +12,7 @@ class NoteBook(qt.QFrame):
         name = data["name"]
         self.setObjectName("NoteContainer")
         self.setStyleSheet("""
-            #ClassContainer {
+            #NoteContainer {
                 border: 1px solid #3f3f3f;
                 border-radius: 10px;
             }
