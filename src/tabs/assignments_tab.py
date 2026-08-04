@@ -22,12 +22,14 @@ class AssignmentsTab(qt.QWidget):
         self.NewAssignmentButton = qt.QPushButton("+ Assignment")
         self.NewClassButton = qt.QPushButton("+ Class")
         self.AssignmentsList = ClassList()
+        self.reminder_label = qt.QLabel()
 
         layout = qt.QVBoxLayout()
         buttons = qt.QHBoxLayout()
         buttons.addWidget(self.NewAssignmentButton)
         buttons.addWidget(self.NewClassButton)
         layout.addLayout(buttons)
+        layout.addWidget(self.reminder_label)
         layout.addWidget(self.AssignmentsList)
         self.setLayout(layout)
 
@@ -44,12 +46,14 @@ class AssignmentsTab(qt.QWidget):
         save_data.save_json("assignments.json",self.assignments)
         self.setUpdatesEnabled(True)
         self.AssignmentsList.sortAssignments()
+        self.update_reminder()
 
         self.NewAssignmentButton.clicked.connect(self.AddAssignment)
         self.NewClassButton.clicked.connect(self.AddClass)
 
 
     def AddAssignment(self):
+        self.classes = load_data.get_json("user.json")["classes_order_assignments"]
         dialog = NewAssignment(None, self.classes)
         if dialog.exec() == qt.QDialog.DialogCode.Accepted:
             data = dialog.get_data()
@@ -60,7 +64,7 @@ class AssignmentsTab(qt.QWidget):
             save_data.save_json("assignments.json",self.assignments)
             self.AddAssignmentWidget(data)
             self.AssignmentsList.sortAssignments()
-
+            self.update_reminder()
     def AddClass(self):
         dialog = NewClass()
         if dialog.exec() == qt.QDialog.DialogCode.Accepted:
@@ -68,6 +72,7 @@ class AssignmentsTab(qt.QWidget):
             if name in self.user["classes_order_assignments"]:
                 qt.QMessageBox.warning(self,"Error","That class already exists.")
                 return
+            self.classes = load_data.get_json("user.json")["classes_order_assignments"]
             self.user = load_data.get_json("user.json")
             self.user["classes_order_assignments"].append(name)
             self.user["classes_order_notes"].append(name)
@@ -90,8 +95,10 @@ class AssignmentsTab(qt.QWidget):
         self.AssignmentsList.removeItem(widget)
         self.assignments.pop(name)
         save_data.save_json("assignments.json",self.assignments)
+        self.update_reminder()
     def RemoveClass(self, name):
-        self.classes.remove(name)
+        self.classes = load_data.get_json("user.json")["classes_order_assignments"]
+        if name in self.classes: self.classes.remove(name)
         if name in self.AssignmentsList.classes:
             widget = self.AssignmentsList.classes[name]["widget"]
             self.RemoveClassWidget(widget)
@@ -102,15 +109,18 @@ class AssignmentsTab(qt.QWidget):
         self.AssignmentsList.removeItem(widget)
         save_data.save_json("user.json",self.user)
         self.classRemoved.emit(widget.class_name)
+        self.update_reminder()
     def Edit(self, widget, expanded):
         self.RemoveAssignmentWidget(widget)
         data = widget.dialog.get_data()
         id = widget.data["id"]
         data["id"] = id
+        data["status"] = widget.data["status"]
         self.assignments[str(id)] = data
         save_data.save_json("assignments.json",self.assignments)
         self.AddAssignmentWidget(data,expanded)
         self.AssignmentsList.sortAssignments()
+        self.update_reminder()
 
     def AddClassWidget(self,name):
         widget = Class(name)
@@ -118,6 +128,7 @@ class AssignmentsTab(qt.QWidget):
         widget.edit_requested.connect(self.editClass)
         self.AssignmentsList.addItem(widget)
     def AcceptClass(self,name):
+        self.classes = load_data.get_json("user.json")["classes_order_assignments"]
         self.classes.append(name)
         self.AddClassWidget(name)
     def editClass(self,old_name,new_name):
@@ -147,3 +158,23 @@ class AssignmentsTab(qt.QWidget):
                 i.data["class"] = new_name
                 assignments[i.data["id"]] = i.data
         save_data.save_json("assignments.json",assignments)
+    def update_reminder(self):
+        count = 0
+        current = Qt.QDate.currentDate()
+        assignments = self.assignments.copy()
+        self.classes = load_data.get_json("user.json")["classes_order_assignments"]
+        for id,assignment in assignments.items():
+            if assignment["class"] not in self.classes and assignment["class"] != "None":
+                del self.assignments[id]
+                continue
+            date = Qt.QDate.fromString(assignment["due_date"], "MM-dd-yyyy")
+            if 7 >= current.daysTo(date) >= 0:
+                count += 1
+        save_data.save_json("assignments.json",self.assignments)
+        if count <= 0:
+            self.reminder_label.setText("No assignments due this week!")
+        elif count == 1:
+            self.reminder_label.setText("1 assignment due this week.")
+        else:
+            self.reminder_label.setText(f"{count} assignments due this week.")
+        self.reminder_label

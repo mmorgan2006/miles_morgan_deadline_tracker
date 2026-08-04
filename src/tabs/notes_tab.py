@@ -78,6 +78,7 @@ class NotesTab(qt.QWidget):
             save_data.save_json("user.json",self.user)
             self.AddClassWidget(name)
             self.classAdded.emit(name)
+            self.classes = load_data.get_json("user.json")["classes_order_notes"]
             self.classes.append(name)
 
     def AddClassWidget(self,name):
@@ -86,10 +87,12 @@ class NotesTab(qt.QWidget):
         widget.edit_requested.connect(self.editClass)
         self.NotesList.addItem(widget)
     def AcceptClass(self,name):
+        self.classes = load_data.get_json("user.json")["classes_order_notes"]
         self.classes.append(name)
         self.AddClassWidget(name)
     def RemoveClass(self, name):
-        self.classes.remove(name)
+        self.classes = load_data.get_json("user.json")["classes_order_notes"]
+        if name in self.classes: self.classes.remove(name)
         if name in self.NotesList.classes:
             widget = self.NotesList.classes[name]["widget"]
             self.RemoveClassWidget(widget)
