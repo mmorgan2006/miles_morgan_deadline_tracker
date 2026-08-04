@@ -23,13 +23,19 @@ class AssignmentsTab(qt.QWidget):
         self.NewClassButton = qt.QPushButton("+ Class")
         self.AssignmentsList = ClassList()
         self.reminder_label = qt.QLabel()
-
+        self.overdue_label = qt.QLabel("")
+        self.overdue_label.setStyleSheet("color: #FF0000;")
         layout = qt.QVBoxLayout()
         buttons = qt.QHBoxLayout()
         buttons.addWidget(self.NewAssignmentButton)
         buttons.addWidget(self.NewClassButton)
+
+        reminders = qt.QHBoxLayout()
+        reminders.addWidget(self.reminder_label)
+        reminders.addWidget(self.overdue_label)
+
         layout.addLayout(buttons)
-        layout.addWidget(self.reminder_label)
+        layout.addLayout(reminders)
         layout.addWidget(self.AssignmentsList)
         self.setLayout(layout)
 
@@ -126,6 +132,7 @@ class AssignmentsTab(qt.QWidget):
         widget = Class(name)
         widget.delete_requested.connect(self.RemoveClassWidget)
         widget.edit_requested.connect(self.editClass)
+        widget.move_requested.connect(self.move_class)
         self.AssignmentsList.addItem(widget)
     def AcceptClass(self,name):
         self.classes = load_data.get_json("user.json")["classes_order_assignments"]
@@ -160,6 +167,7 @@ class AssignmentsTab(qt.QWidget):
         save_data.save_json("assignments.json",assignments)
     def update_reminder(self):
         count = 0
+        overdue = 0
         current = Qt.QDate.currentDate()
         assignments = self.assignments.copy()
         self.classes = load_data.get_json("user.json")["classes_order_assignments"]
@@ -168,8 +176,10 @@ class AssignmentsTab(qt.QWidget):
                 del self.assignments[id]
                 continue
             date = Qt.QDate.fromString(assignment["due_date"], "MM-dd-yyyy")
-            if 7 >= current.daysTo(date) >= 0:
+            if 7 >= current.daysTo(date) >= 0 and assignment["status"] == "incomplete":
                 count += 1
+            elif current.daysTo(date) < 0 and assignment["status"] == "incomplete":
+                overdue += 1
         save_data.save_json("assignments.json",self.assignments)
         if count <= 0:
             self.reminder_label.setText("No assignments due this week!")
@@ -177,4 +187,23 @@ class AssignmentsTab(qt.QWidget):
             self.reminder_label.setText("1 assignment due this week.")
         else:
             self.reminder_label.setText(f"{count} assignments due this week.")
+
+        if overdue <= 0:
+            self.overdue_label.setText("")
+        elif overdue == 1:
+            self.overdue_label.setText("1 assignment overdue.")
+        else:
+            self.overdue_label.setText(f"{count} assignments overdue.")
         self.reminder_label
+    def move_class(self,widget,direction):
+        self.user = load_data.get_json("user.json")
+        self.classes = self.user["classes_order_assignments"]
+        index = self.classes.index(widget.class_name)
+        if index - direction < 0 or index - direction >= len(self.classes):
+            return
+        replaced = self.classes[index-direction]
+        self.classes[index-direction] = widget.class_name
+        self.classes[index] = replaced
+        self.user["classes_order_assignments"] = self.classes
+        save_data.save_json("user.json",self.user)
+        self.AssignmentsList.content_layout.insertWidget(index-direction,widget)

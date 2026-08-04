@@ -8,6 +8,7 @@ import save_data
 class Class(qt.QFrame):
     delete_requested = Qt.Signal(object)
     edit_requested = Qt.Signal(str, str)
+    move_requested = Qt.Signal(object, int)
     def __init__(self,name):
         super().__init__()
 
@@ -31,7 +32,15 @@ class Class(qt.QFrame):
         self.list_toggle.setChecked(True)
 
 
+        self.move_up_button = qt.QPushButton("▲")
+        self.move_up_button.setFixedWidth(22)
+        self.move_down_button = qt.QPushButton("▼")
+        self.move_down_button.setFixedWidth(22)
+
         details = qt.QHBoxLayout()
+        if self.class_name != "Unordered":
+            details.addWidget(self.move_up_button)
+            details.addWidget(self.move_down_button)
         details.addWidget(self.name)
         details.addWidget(qt.QLabel("(Class)"))
         details.addStretch()
@@ -48,6 +57,8 @@ class Class(qt.QFrame):
         self.list_toggle.clicked.connect(self.toggle_view)
         self.delete_button.clicked.connect(self.delete)
         self.rename.clicked.connect(self.edit)
+        self.move_up_button.clicked.connect(lambda: self.move_requested.emit(self, 1))
+        self.move_down_button.clicked.connect(lambda: self.move_requested.emit(self, -1))
     def addItem(self,widget):
         self.content_layout.addWidget(widget)
     def removeItem(self, widget):
