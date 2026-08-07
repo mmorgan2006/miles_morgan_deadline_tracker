@@ -15,13 +15,13 @@ class Assignment(qt.QFrame):
         super().__init__()
 
         self.setObjectName("AssignmentCard")
-        self.setStyleSheet("""
-            #AssignmentCard {
-                background-color: #2b2b2b;
-                border: 1px solid #3f3f3f;
-                border-radius: 8px;
-            }
-        """)
+        #self.setStyleSheet("""
+        #    #AssignmentCard {
+        #        background-color: #2b2b2b;
+        #        border: 1px solid #3f3f3f;
+        #       border-radius: 8px;
+        #    }
+        #""")
 
 
         self.data = data

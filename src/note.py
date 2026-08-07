@@ -11,18 +11,23 @@ class Note(qt.QPushButton):
     delete_requested = Qt.Signal(object)
     def __init__(self,data):
         super().__init__()
-
+        self.setObjectName("NoteCard")
         self.setFixedHeight(40)
         self.data = data
         self.id = data["id"]
 
         self.name = qt.QLabel(data["name"])
         self.edit_button = qt.QPushButton("Edit")
+        self.edit_button.setFixedWidth(40)
         self.delete_button = qt.QPushButton("Delete")
+        self.delete_button.setFixedWidth(55)
+        self.export_button = qt.QPushButton("Export")
+        self.export_button.setFixedWidth(55)
 
         layout = qt.QHBoxLayout(self)
         layout.addWidget(self.name)
         layout.addStretch()
+        layout.addWidget(self.export_button)
         layout.addWidget(self.edit_button)
         layout.addWidget(self.delete_button)
 
@@ -85,7 +90,7 @@ class MiniNote(qt.QPushButton):
     def open_note(self):
         notes = load_data.get_json("notes.json")
         notebooks = load_data.get_json("notebooks.json")
-        if self.id not in notes or self.data["notebook_id"] not in notebooks:
+        if self.id not in notes or (self.data["notebook_id"] not in notebooks and self.data["notebook_id"] != "-1"):
             qt.QMessageBox.warning(self,"Error","These notes are missing or deleted.")
             self.deleteLater()
         else:

@@ -7,18 +7,27 @@ from notebook import NoteBook
 from sort import sort
 
 
-class ClassList(qt.QWidget):
+class ClassList(qt.QFrame):
     def __init__(self):
         super().__init__()
+
+        self.setObjectName("ClassList")
+
         self.classes = {}
         self.notebooks = {}
         scroll = qt.QScrollArea()
         scroll.setWidgetResizable(True)
+        scroll.setFrameShape(qt.QFrame.Shape.NoFrame)
+        scroll.viewport().setAutoFillBackground(False)
+
         content = qt.QWidget()
+        content.setObjectName("ClassListContent")
+
         self.content_layout = qt.QVBoxLayout(content)
         scroll.setWidget(content)
         layout = qt.QVBoxLayout(self)
         layout.addWidget(scroll)
+
         self.content_layout.addStretch()
     def addItem(self, widget):
         if isinstance(widget,Class):

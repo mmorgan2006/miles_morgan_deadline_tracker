@@ -1,6 +1,7 @@
 import PySide6.QtWidgets as qt
 
 import load_data
+from style_update import apply_theme
 from tabs.assignments_tab import AssignmentsTab
 from tabs.notes_tab import NotesTab
 
@@ -30,4 +31,6 @@ if __name__ == "__main__":
     app = qt.QApplication()
     window = MainWindow()
     window.show()
+    app.styleHints().colorSchemeChanged.connect(lambda: apply_theme(app))
+    apply_theme(app)
     app.exec()

@@ -12,18 +12,14 @@ class NoteBook(qt.QFrame):
         super().__init__()
         name = data["name"]
         self.setObjectName("NoteContainer")
-        self.setStyleSheet("""
-            #NoteContainer {
-                border: 1px solid #3f3f3f;
-                border-radius: 10px;
-            }
-        """)
         self.data = data
         self.full_layout = qt.QVBoxLayout(self)
         self.class_name = data["class"]
         self.name = qt.QLabel(name)
         self.rename = qt.QPushButton("Edit")
+        self.rename.setFixedWidth(40)
         self.delete_button = qt.QPushButton("Delete")
+        self.delete_button.setFixedWidth(55)
 
         self.list_toggle = qt.QPushButton("▼")
         self.list_toggle.setFixedWidth(30)

@@ -13,12 +13,7 @@ class Class(qt.QFrame):
         super().__init__()
 
         self.setObjectName("ClassContainer")
-        self.setStyleSheet("""
-            #ClassContainer {
-                border: 1px solid #222222;
-                border-radius: 10px;
-            }
-        """)
+
 
         self.full_layout = qt.QVBoxLayout(self)
         self.class_name = name
