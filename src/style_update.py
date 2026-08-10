@@ -72,26 +72,26 @@ def dark_stylesheet():
 
 def light_palette():
     p = QPalette()
-    p.setColor(QPalette.Window, QColor("#DDDDDD"))
-    p.setColor(QPalette.WindowText, QColor("#1a1a1a"))
-    p.setColor(QPalette.Base, QColor("#DDDDDD"))
-    p.setColor(QPalette.AlternateBase, QColor("#eaeaea"))
-    p.setColor(QPalette.Text, QColor("#1a1a1a"))
-    p.setColor(QPalette.Button, QColor("#f0f0f0"))
-    p.setColor(QPalette.ButtonText, QColor("#1a1a1a"))
-    p.setColor(QPalette.Highlight, QColor("#2169EB"))
+    p.setColor(QPalette.Window, QColor("#DDDDDD")) #type: ignore
+    p.setColor(QPalette.WindowText, QColor("#1a1a1a")) #type: ignore
+    p.setColor(QPalette.Base, QColor("#DDDDDD")) #type: ignore
+    p.setColor(QPalette.AlternateBase, QColor("#eaeaea")) #type: ignore
+    p.setColor(QPalette.Text, QColor("#1a1a1a")) #type: ignore
+    p.setColor(QPalette.Button, QColor("#f0f0f0")) #type: ignore
+    p.setColor(QPalette.ButtonText, QColor("#1a1a1a")) #type: ignore
+    p.setColor(QPalette.Highlight, QColor("#2169EB"))  #type: ignore
     return p
 
 
 def dark_palette():
     p = QPalette()
-    p.setColor(QPalette.Window, QColor("#2b2b2b"))
-    p.setColor(QPalette.WindowText, QColor("#e8e8e8"))
-    p.setColor(QPalette.Base, QColor("#1e1e1e"))
-    p.setColor(QPalette.AlternateBase, QColor("#333333"))
-    p.setColor(QPalette.Text, QColor("#e8e8e8"))
-    p.setColor(QPalette.Button, QColor("#3a3a3a"))
-    p.setColor(QPalette.ButtonText, QColor("#e8e8e8"))
-    p.setColor(QPalette.Highlight, QColor("#2169EB"))
-    p.setColor(QPalette.HighlightedText, QColor("#FFFFFF"))
+    p.setColor(QPalette.Window, QColor("#2b2b2b")) #type: ignore
+    p.setColor(QPalette.WindowText, QColor("#e8e8e8")) #type: ignore
+    p.setColor(QPalette.Base, QColor("#1e1e1e")) #type: ignore
+    p.setColor(QPalette.AlternateBase, QColor("#333333")) #type: ignore
+    p.setColor(QPalette.Text, QColor("#e8e8e8")) #type: ignore
+    p.setColor(QPalette.Button, QColor("#3a3a3a")) #type: ignore
+    p.setColor(QPalette.ButtonText, QColor("#e8e8e8")) #type: ignore
+    p.setColor(QPalette.Highlight, QColor("#2169EB")) #type: ignore
+    p.setColor(QPalette.HighlightedText, QColor("#FFFFFF")) #type: ignore
     return p

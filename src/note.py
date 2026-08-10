@@ -3,6 +3,7 @@ import PySide6.QtWidgets as qt
 
 import load_data
 import save_data
+from export import export
 from notepage import NotePage, NoteSettings
 
 
@@ -34,6 +35,7 @@ class Note(qt.QPushButton):
         self.clicked.connect(self.open_note)
         self.edit_button.clicked.connect(self.edit_note)
         self.delete_button.clicked.connect(self.delete_note)
+        self.export_button.clicked.connect(self.export)
     def open_note(self):
         notes = load_data.get_json("notes.json")
         data = notes[self.id]
@@ -62,7 +64,10 @@ class Note(qt.QPushButton):
         )
         if reply == qt.QMessageBox.StandardButton.Yes:
             self.delete_requested.emit(self)
-
+    def export(self):
+        notes = load_data.get_json("notes.json")
+        html = notes[self.id]["text"]
+        export(html)
 class MiniNote(qt.QPushButton):
     def __init__(self,id):
         super().__init__()
