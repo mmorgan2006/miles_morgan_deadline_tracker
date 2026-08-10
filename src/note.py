@@ -3,7 +3,7 @@ import PySide6.QtWidgets as qt
 
 import load_data
 import save_data
-from export import export
+from export_file import export
 from notepage import NotePage, NoteSettings
 
 

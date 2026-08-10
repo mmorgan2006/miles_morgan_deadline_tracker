@@ -3,6 +3,7 @@ import PySide6.QtGui as qtg
 import PySide6.QtWidgets as qt
 
 import load_data
+from import_file import import_docx
 
 
 class NotePage(qt.QDialog):
@@ -17,6 +18,7 @@ class NotePage(qt.QDialog):
             )
 
         self.textbox = qt.QTextEdit()
+        self.textbox.setPlaceholderText("Type text here! Wow!")
 
         self.bold_button = qt.QPushButton("B")
         self.bold_button.setCheckable(True)
@@ -104,7 +106,6 @@ class NotePage(qt.QDialog):
             self._update_color_btn_icon()
 
 
-# --- Font family / size / color ---
     def change_font_family(self, font: qtg.QFont):
         fmt = qtg.QTextCharFormat()
         fmt.setFontFamilies([font.family()])
@@ -132,6 +133,7 @@ class NotePage(qt.QDialog):
 class NoteSettings(qt.QDialog):
     def __init__(self,data=None ,parent=None):
         super().__init__(parent)
+        self.text = ""
         classes = load_data.get_json("user.json")["classes_order_notes"]
         self.notebooks = load_data.get_json("notebooks.json")
 
@@ -148,6 +150,8 @@ class NoteSettings(qt.QDialog):
 
         self.notebook_choice = qt.QComboBox()
         self.notebook_choice.addItem("None")
+
+        self.import_button = qt.QPushButton("Import")
 
         form = qt.QFormLayout()
         form.addRow("Name: ",self.name)
@@ -167,6 +171,8 @@ class NoteSettings(qt.QDialog):
 
         layout = qt.QVBoxLayout(self)
         layout.addLayout(form)
+        if data is None:
+            layout.addWidget(self.import_button)
         layout.addWidget(buttons)
         layout.addStretch()
 
@@ -174,6 +180,7 @@ class NoteSettings(qt.QDialog):
         buttons.rejected.connect(self.reject)
 
         self.class_choice.currentTextChanged.connect(self.toggle_notebooks)
+        self.import_button.clicked.connect(self.import_notes)
     def validate(self):
         if not self.name.text().strip():
             self.name.setStyleSheet("border: 1px solid red;")
@@ -193,5 +200,12 @@ class NoteSettings(qt.QDialog):
         return {
             "name": self.name.text().strip(),
             "class": self.class_choice.currentText(),
-            "notebook_id": id
+            "notebook_id": id,
+            "text": self.text
         }
+    def import_notes(self):
+        try:
+            self.text,name = import_docx() #type: ignore
+            self.name.setText(name)
+        except Exception:  # noqa: BLE001
+            print("Import Cancelled")

@@ -112,7 +112,6 @@ class NotesTab(qt.QWidget):
             data = dialog.get_data()
             id = str(utilities.generate_id("notes.json"))
             data["id"] = id
-            data["text"] = ""
             notes[id] = data
             save_data.save_json("notes.json", notes)
 

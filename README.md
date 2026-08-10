@@ -23,6 +23,7 @@ A lightweight tool for keeping track of assignments and organizing notes in one 
 ## Installation and Usage
 
 Clone the repository to an empty folder
+
 To use the project, run the main.py file
 
 ```shell
