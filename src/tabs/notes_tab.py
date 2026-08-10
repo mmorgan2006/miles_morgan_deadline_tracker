@@ -7,7 +7,7 @@ import utilities
 from class_list import ClassList
 from classes import Class, NewClass
 from note import Note
-from notebook import NewNoteBook, NoteBook
+from Notebook import NewNoteBook, NoteBook
 from notepage import NotePage, NoteSettings
 from sort import sort
 

@@ -3,7 +3,7 @@ from math import floor
 import PySide6.QtCore as Qt
 
 from assignment import Assignment
-from notebook import NoteBook
+from Notebook import NoteBook
 
 
 def sort(list, lowIndex, highIndex):

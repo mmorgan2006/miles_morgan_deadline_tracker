@@ -30,11 +30,24 @@ class NotePage(qt.QDialog):
         self.underline_button.setCheckable(True)
         self.underline_button.setFixedWidth(30)
 
+        self.font_combo = qt.QFontComboBox()
+
+        self.size_spin = qt.QSpinBox()
+        self.size_spin.setRange(6, 96)
+        self.size_spin.setValue(12)
+
+        self.color_btn = qt.QPushButton("Color")
+        self._current_color = qtg.QColor("black")
+
         tools = qt.QHBoxLayout()
+        tools.addWidget(self.font_combo)
+        tools.addWidget(self.size_spin)
         tools.addWidget(self.bold_button)
         tools.addWidget(self.italic_button)
         tools.addWidget(self.underline_button)
+        tools.addWidget(self.color_btn)
         tools.addStretch()
+
 
         layout = qt.QVBoxLayout(self)
         layout.addLayout(tools)
@@ -47,6 +60,10 @@ class NotePage(qt.QDialog):
         self.bold_button.clicked.connect(self.toggle_bold)
         self.italic_button.clicked.connect(self.toggle_italic)
         self.underline_button.clicked.connect(self.toggle_underline)
+        self.font_combo.currentFontChanged.connect(self.change_font_family)
+        self.size_spin.valueChanged.connect(self.change_font_size)
+        self.color_btn.clicked.connect(self.change_font_color)
+        self._update_color_btn_icon()
     def toggle_bold(self):
         format = qtg.QTextCharFormat()
         weight = qtg.QFont.Bold if self.bold_button.isChecked() else qtg.QFont.Normal #type: ignore
@@ -69,10 +86,48 @@ class NotePage(qt.QDialog):
         self.textbox.mergeCurrentCharFormat(format)
 
     def update_toolbar(self):
-        format = self.textbox.currentCharFormat()
-        self.bold_button.setChecked(format.fontWeight() == qtg.QFont.Bold) #type: ignore
-        self.italic_button.setChecked(format.fontItalic())
-        self.underline_button.setChecked(format.fontUnderline())
+            fmt = self.textbox.currentCharFormat()
+            self.bold_button.setChecked(fmt.fontWeight() == qtg.QFont.Bold) #type: ignore
+            self.italic_button.setChecked(fmt.fontItalic())
+            self.underline_button.setChecked(fmt.fontUnderline())
+
+            self.font_combo.blockSignals(True)
+            self.font_combo.setCurrentFont(fmt.font())
+            self.font_combo.blockSignals(False)
+
+            self.size_spin.blockSignals(True)
+            size = fmt.fontPointSize()
+            self.size_spin.setValue(int(size) if size > 0 else 12)
+            self.size_spin.blockSignals(False)
+
+            self._current_color = fmt.foreground().color()
+            self._update_color_btn_icon()
+
+
+# --- Font family / size / color ---
+    def change_font_family(self, font: qtg.QFont):
+        fmt = qtg.QTextCharFormat()
+        fmt.setFontFamilies([font.family()])
+        self.merge_format(fmt)
+
+    def change_font_size(self, size: int):
+        fmt = qtg.QTextCharFormat()
+        fmt.setFontPointSize(size)
+        self.merge_format(fmt)
+
+    def change_font_color(self):
+        color = qt.QColorDialog.getColor(self._current_color, self, "Select Text Color")
+        if color.isValid():
+            self._current_color = color
+            self._update_color_btn_icon()
+            fmt = qtg.QTextCharFormat()
+            fmt.setForeground(color)
+            self.merge_format(fmt)
+
+    def _update_color_btn_icon(self):
+        pixmap = qtg.QPixmap(16, 16)
+        pixmap.fill(self._current_color)
+        self.color_btn.setIcon(qtg.QIcon(pixmap))
 
 class NoteSettings(qt.QDialog):
     def __init__(self,data=None ,parent=None):

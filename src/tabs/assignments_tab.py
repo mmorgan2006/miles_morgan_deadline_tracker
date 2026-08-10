@@ -194,7 +194,6 @@ class AssignmentsTab(qt.QWidget):
             self.overdue_label.setText("1 assignment overdue.")
         else:
             self.overdue_label.setText(f"{count} assignments overdue.")
-        self.reminder_label
     def move_class(self,widget,direction):
         self.user = load_data.get_json("user.json")
         self.classes = self.user["classes_order_assignments"]

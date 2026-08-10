@@ -14,14 +14,19 @@ def get_data_dir():
     data_dir = base / "mmorgan-deadline-tracker"
     data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir
-    return [f.name for f in dir.iterdir() if f.is_dir()]
 
-def get_json(path):
+def get_json(path) -> dict:
     dir = get_data_dir() / path
     if not dir.exists():
         initialize()
-    with open(dir,"r") as file:
-        return json.load(file)
+    try:
+        with open(dir,"r") as file:
+            data = json.load(file)
+            return data
+    except Exception:  # noqa: BLE001
+        if path == "user.json": return {"classes_order_assignments": [], "classes_order_notes": []}
+        else: return {}
+
 
 def initialize():
     dir = get_data_dir()

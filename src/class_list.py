@@ -3,7 +3,7 @@ import PySide6.QtWidgets as qt
 from assignment import Assignment
 from classes import Class
 from note import Note
-from notebook import NoteBook
+from Notebook import NoteBook
 from sort import sort
 
 
